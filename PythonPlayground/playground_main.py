@@ -10,11 +10,11 @@ from ttkwidgets.autocomplete import AutocompleteEntry
 from playground_functions import add_numbers
 
 def button_click():
-    label_greybox1 = tk.Label(root,  background="#909090", width=14, height=7)
-    label_greybox2 = tk.Label(root, background="#909090", width=14, height=7)
-    label_greybox3 = tk.Label(root, background="#909090", width=14, height=7)
-    label_greybox4 = tk.Label(root, background="#909090", width=14, height=7)
-    label_greybox5 = tk.Label(root, background="#909090", width=14, height=7)
+    label_greybox1 = tk.Label(root,  background="#8c92ac", width=14, height=7)
+    label_greybox2 = tk.Label(root, background="#8c92ac", width=14, height=7)
+    label_greybox3 = tk.Label(root, background="#8c92ac", width=14, height=7)
+    label_greybox4 = tk.Label(root, background="#8c92ac", width=14, height=7)
+    label_greybox5 = tk.Label(root, background="#8c92ac", width=14, height=7)
     label_greybox1.place(x=550, y=10)
     label_greybox2.place(x=550, y=150)
     label_greybox3.place(x=550, y=290)
@@ -25,7 +25,7 @@ def button_click():
 root = tk.Tk()
 root.title("Amazon Popular Books Filter Program")
 root.geometry("1300x800")
-root['background'] = '#909090'
+root['background'] = '#8c92ac'
 
 label = tk.Label(root, width= 100, height=5, bg="#3C5291")
 label.place(x=0, y=0)
@@ -40,24 +40,24 @@ label.place(x=500, y=0)
 # Create Genre Search Bar
 genre_entry = tk.Entry(root, width=20)
 genre_entry.place(x=100, y=135)
-label = tk.Label(root, text="Genre: ", font="Poppins", background='#909090')
+label = tk.Label(root, text="Genre: ", font="Poppins", background='#8c92ac')
 label.place(x=10, y=130)
 
 #Create min price entry field
 entry_minprice = tk.Entry(root, width=20)
 entry_minprice.place(x=200, y=185)
-label = tk.Label(root, text="Min Price Point: ", font="Poppins", background='#909090')
+label = tk.Label(root, text="Min Price Point: ", font="Poppins", background='#8c92ac')
 label.place(x=10, y=180)
 
 #Create max price entry field
 entry_maxprice = tk.Entry(root, width=20)
 entry_maxprice.place(x=200, y=225)
-label = tk.Label(root, text="Max Price Point: ", font="Poppins", background='#909090')
+label = tk.Label(root, text="Max Price Point: ", font="Poppins", background='#8c92ac')
 label.place(x=10, y=220)
 
 # Create a button
 button = tk.Button(root, text="Print Results", font="Poppins", command=button_click, width=10, height=3)
-button.place(x=250, y=600)
+button.place(x=180, y=600)
 
 # Option menu for choosing the algorithm
 algorithms = ["Merge Sort", "Sleep Sort", "Shell Sort"] # Not set in stone
