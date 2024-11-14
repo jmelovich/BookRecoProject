@@ -37,7 +37,7 @@ root.title("Amazon Popular Books Filter Program")
 root.geometry("1300x800")
 root['background'] = '#909090'
 
-label = tk.Label(root, width= 50, height=5, bg="#3C5291")
+label = tk.Label(root, width= 100, height=5, bg="#3C5291")
 label.place(x=0, y=0)
 
 label = tk.Label(root, width= 200, height=100, bg="#172038")
@@ -49,15 +49,15 @@ label.place(x=500, y=0)
 
 # Create Genre Search Bar
 genre_entry = tk.Entry(root, width=20)
-genre_entry.place(x=100, y=105)
+genre_entry.place(x=100, y=135)
 label = tk.Label(root, text="Genre: ", font="Poppins", background='#909090')
-label.place(x=10, y=100)
+label.place(x=10, y=130)
 
 #Create min price entry field
 entry_minprice = tk.Entry(root, width=20)
-entry_minprice.place(x=200, y=175)
+entry_minprice.place(x=200, y=185)
 label = tk.Label(root, text="Min Price Point: ", font="Poppins", background='#909090')
-label.place(x=10, y=170)
+label.place(x=10, y=180)
 
 #Create max price entry field
 entry_maxprice = tk.Entry(root, width=20)
@@ -75,10 +75,10 @@ var = tk.StringVar(root)
 var.set(algorithms[0])
 
 data_structures = tk.OptionMenu(root, var, *algorithms)
-data_structures.place(x=150, y = 40)
+data_structures.place(x=200, y = 40)
 
 label = tk.Label(root, text="Sorting Method:", font="Poppins", background='#3C5291')
-label.place(x=150, y=10)
+label.place(x=200, y=10)
 
 #Option menu for sorting variable
 Sorting_var = ["Rating", "Review Count", "Page number", "Date", "Alphabetical"]
@@ -87,10 +87,10 @@ var = tk.StringVar(root)
 var.set(Sorting_var[0])
 
 Sorting_bar = tk.OptionMenu(root, var, *Sorting_var)
-Sorting_bar.place(x=50, y = 40)
+Sorting_bar.place(x=20, y = 40)
 
 label = tk.Label(root, text="Sort By: ", font="Poppins", background='#3C5291')
-label.place(x=50, y=10)
+label.place(x=20, y=10)
 
 # # Create input fields
 # entry1 = tk.Entry(root)
