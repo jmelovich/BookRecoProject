@@ -10,26 +10,16 @@ from ttkwidgets.autocomplete import AutocompleteEntry
 from playground_functions import add_numbers
 
 def button_click():
-    label_greybox = tk.Label(root,  background="#909090", width=50, height=50)
-    label_results = tk.Label(root, background="#909090", font="Poppins")
-    label_greybox.place(x=700, y=500)
-    if genre_entry.get() == "":
-        genre_results = "N/A"
-    else:
-        genre_results = genre_entry.get()
-    if entry_minprice.get() == "":
-        minprice_results = "N/A"
-    else:
-        minprice_results = entry_minprice.get()
-    if entry_maxprice.get() == "":
-        maxprice_results = "N/A"
-    else:
-        maxprice_results = entry_maxprice.get()
-    label_results.config(text=f"Genre: {genre_results}\n"
-                              f"Min Price: {minprice_results}\n"
-                              f"Max Price: {maxprice_results}")
-    label_results.place(x=700, y=500)
-
+    label_greybox1 = tk.Label(root,  background="#909090", width=14, height=7)
+    label_greybox2 = tk.Label(root, background="#909090", width=14, height=7)
+    label_greybox3 = tk.Label(root, background="#909090", width=14, height=7)
+    label_greybox4 = tk.Label(root, background="#909090", width=14, height=7)
+    label_greybox5 = tk.Label(root, background="#909090", width=14, height=7)
+    label_greybox1.place(x=550, y=10)
+    label_greybox2.place(x=550, y=150)
+    label_greybox3.place(x=550, y=290)
+    label_greybox4.place(x=550, y=430)
+    label_greybox5.place(x=550, y=570)
 
 # Create the main window
 root = tk.Tk()
