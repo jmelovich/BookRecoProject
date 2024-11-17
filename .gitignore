@@ -2,3 +2,10 @@
 /__pycache__
 /.vscode
 /PythonPlayground/__pycache__
+/build
+DatasetManagement/GoodReads_100k_books.csv
+/src/build
+/src/lib
+/src/BookDatabase/book_database_cpp.egg-info
+/src/BookDatabase/build
+/src/BookDatabase/lib

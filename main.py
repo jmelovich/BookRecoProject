@@ -106,7 +106,7 @@ def loadData(file_path):
         return None
     if not os.path.exists(file_path):
         # download the file from the internet
-        downloaded_path = kagglehub.dataset_download("mdhamani/goodreads-books-100k")
+        downloaded_path = kagglehub.dataset_download("mdhamani/goodreads-books-100k", force_download=True)
         # move the downloaded file to the specified path
         os.rename(downloaded_path + "/GoodReads_100k_books.csv", file_path)
     
