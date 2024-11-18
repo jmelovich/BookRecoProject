@@ -41,9 +41,9 @@ class BuildExt(build_ext):
     def build_extensions(self):
         opts = []
         if platform.system() == "Windows":
-            opts.append('/EHsc')
+            opts.extend(['/EHsc', '/std:c++17'])  # Added C++17 flag for Windows
         else:
-            opts.extend(['-std=c++11', '-fvisibility=hidden'])
+            opts.extend(['-std=c++17', '-fvisibility=hidden'])  # Changed to C++17 for Unix
         
         for ext in self.extensions:
             ext.extra_compile_args = opts
