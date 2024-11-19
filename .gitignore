@@ -9,3 +9,4 @@ DatasetManagement/GoodReads_100k_books.csv
 /src/BookDatabase/book_database_cpp.egg-info
 /src/BookDatabase/build
 /src/BookDatabase/lib
+*.pyc
