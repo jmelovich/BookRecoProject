@@ -16,6 +16,7 @@ from src.ui_utils import (
 import book_database_cpp
 
 
+
 class BookRecommendationApp:
     def __init__(self, root):
         self.root = root
@@ -28,7 +29,7 @@ class BookRecommendationApp:
         self.setup_ui()
         
         csv_path = os.path.abspath("DatasetManagement/GoodReads_100k_books.csv")
-        self.book_db = book_database_cpp.BookDatabase_Type1(csv_path)
+        self.book_db = load_data_cpp(csv_path)
 
     def setup_ui(self):
         self.root.title("Book Recommendation System")
@@ -135,6 +136,14 @@ def load_data(file_path):
         downloaded_path = kagglehub.dataset_download("mdhamani/goodreads-books-100k")
         os.rename(downloaded_path + "/GoodReads_100k_books.csv", file_path)
     return pd.read_csv(file_path).head(50)
+
+def load_data_cpp(file_path):
+    if not isinstance(file_path, str):
+        return None
+    if not os.path.exists(file_path):
+        downloaded_path = kagglehub.dataset_download("mdhamani/goodreads-books-100k")
+        os.rename(downloaded_path + "/GoodReads_100k_books.csv", file_path)
+    return book_database_cpp.BookDatabase_Type1(file_path)
 
 if __name__ == "__main__":
     root = tk.Tk()
