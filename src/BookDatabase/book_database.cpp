@@ -22,6 +22,71 @@ namespace py = pybind11;
 using DataFrame = Eigen::MatrixXd;
 
 
+// Helper function for computing additional variable swaps that occur during shell sort
+void Shell_Helper(vector<BookEntry> & books, int iteration, int current){
+    if(current - iteration >= 0){
+        if(books[current].getRatingCount() > books[current - iteration].getRatingCount()){
+            BookEntry temp = books[current];
+            books[current] = books[current  - iteration];
+            books[current - iteration] = temp;
+            Shell_Helper(books, iteration, current - iteration);
+        }
+    }
+}
+
+
+// Shell sort algorithm for sorting books by rating in descending order
+void Shell_Sort(vector<BookEntry> &books){
+    int size = books.size();
+    int iteration = size / 2;
+    while(iteration > 0){
+        for(int i = 0; i < size; i++){
+            if(i + iteration < size){
+                if(books[i + iteration].getRatingCount() > books[i].getRatingCount()){
+                    BookEntry temp = books[i];
+                    books[i] = books[i + iteration];
+                    books[i + iteration] = temp;
+                    Shell_Helper(books, iteration, i);
+                }
+            }
+        }
+        iteration = iteration / 2;
+    }
+}
+
+
+// Helper function to perform the quick sort algorithm recursively
+// Sorts the book objects in descending order based on rating
+void Quick_Helper(vector<BookEntry>& Updated_books, vector<BookEntry> books){
+    int size = books.size();
+    vector<BookEntry> leftlist;
+    vector<BookEntry> rightlist;
+    BookEntry pivot = books[size - 1];
+    for (int i = 0; i < size - 1; i++){
+        if (books[i].getRatingCount() >= pivot.getRatingCount()){
+            leftlist.push_back(books[i]);
+        }
+        else if (books[i].getRatingCount() < pivot.getRatingCount()){
+            rightlist.push_back(books[i]);
+        }
+    }
+    if (leftlist.size() > 0){
+        Quick_Helper(Updated_books, leftlist);
+    }
+    Updated_books.push_back(pivot);
+    if (rightlist.size() > 0){
+      Quick_Helper(Updated_books, rightlist);
+    }
+}
+
+
+// Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
+vector<BookEntry> Quick_Sort(vector<BookEntry> books){
+    vector<BookEntry> Updated_books;
+    Quick_Helper(Updated_books, books);
+    return Updated_books;
+}
+
 
 // helper functions
 void trim(std::string& str) {
