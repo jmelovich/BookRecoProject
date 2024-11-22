@@ -12,21 +12,25 @@ def load_genre_list():
             # Strip any whitespace or newline characters and append to the list
             genres_autocomplete_list.append(line.strip())
 
+# Function for creating and displaying text on the program's window
 def create_label(parent, text, font, background, row, column):
     label = tk.Label(parent, text=text, font=font, background=background)
     label.grid(row=row, column=column, sticky='w', padx=10, pady=5)
     return label
 
+# Function for creating functional text boxes to store user inputs
 def create_entry(parent, width, row, column):
     entry = tk.Entry(parent, width=width)
     entry.grid(row=row, column=column, padx=10, pady=5)
     return entry
 
+# Function for creating button that activate additional functions when pressed
 def create_button(parent, text, command, font, width, height, row, column):
     button = tk.Button(parent, text=text, command=command, font=font, width=width, height=height)
     button.grid(row=row, column=column, padx=10, pady=5)
     return button
 
+# Function for creating drop down menus to store different program operations
 def create_option_menu(parent, options, default, row, column):
     var = tk.StringVar(parent)
     var.set(default)
@@ -34,6 +38,7 @@ def create_option_menu(parent, options, default, row, column):
     option_menu.grid(row=row, column=column, padx=10, pady=5)
     return var
 
+# Function that takes in an image url and returns a colored image that can be displayed on the UI.
 def loadImageFromURL(url, root):
     if not isinstance(url, str):
         return None
@@ -43,6 +48,7 @@ def loadImageFromURL(url, root):
     image = Image.open(BytesIO(response.content))
     return ImageTk.PhotoImage(image, master=root)
 
+# Function to desplay information as users hover their mouse over book images
 def on_hover(event, title, author, rating):
     event.widget.config(relief="raised", bd=0)
     tooltip = tk.Toplevel(event.widget)
@@ -52,12 +58,14 @@ def on_hover(event, title, author, rating):
     label.pack()
     event.widget.tooltip = tooltip
 
+# Function to handle when users try to escape from the program
 def on_leave(event):
     event.widget.config(relief="flat", bd=0)
     if hasattr(event.widget, 'tooltip'):
         event.widget.tooltip.destroy()
         del event.widget.tooltip
 
+# Class for storing all elements used to develop the front end UI
 class BookGridUI:
     def __init__(self, root):
         self.root = root
@@ -78,10 +86,12 @@ class BookGridUI:
         self.grid_frame.bind("<Configure>", self.on_frame_configure)
         self.grid_canvas.bind_all("<MouseWheel>", 
             lambda event: self.grid_canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
-        
+
+    # Function to update the scroll region for the grid as the window changes
     def on_frame_configure(self, event):
         self.grid_canvas.configure(scrollregion=self.grid_canvas.bbox("all"))
 
+    # Function to adjust the number of columns in the grid
     def adjust_grid(self, event):
         self.grid_canvas.update_idletasks()
         width = self.grid_canvas.winfo_width()
@@ -90,6 +100,7 @@ class BookGridUI:
             self.grid_columns = new_columns
             self.rearrange_grid()
 
+    # Function to reorganize all UI elements to fit in the window's grid
     def rearrange_grid(self):
         children = self.grid_frame.winfo_children()
         for index, widget in enumerate(children):
@@ -98,6 +109,7 @@ class BookGridUI:
                        column=index % self.grid_columns, 
                        padx=5, pady=5, sticky="nsew")
 
+    # Function to add and update elements displayed on the window's grid
     def populate_grid(self, dataframe, on_click_callback):
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
