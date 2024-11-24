@@ -546,6 +546,7 @@ private:
 
 };
 
+
 // Class for loading in data and sorting with Shell sort
 class BookDatabase_Type2 : public BookDatabase {
 public:
@@ -983,6 +984,12 @@ PYBIND11_MODULE(book_database_cpp, m) {
 
     // Bind the concrete implementation
     py::class_<BookDatabase_Type1, BookDatabase, std::shared_ptr<BookDatabase_Type1>>(m, "BookDatabase_Type1")
+        .def(py::init<const std::string&>())
+        .def(py::init<const std::string&, int>());
+    py::class_<BookDatabase_Type2, BookDatabase, std::shared_ptr<BookDatabase_Type2>>(m, "BookDatabase_Type2")
+        .def(py::init<const std::string&>())
+        .def(py::init<const std::string&, int>());
+    py::class_<BookDatabase_Type3, BookDatabase, std::shared_ptr<BookDatabase_Type3>>(m, "BookDatabase_Type3")
         .def(py::init<const std::string&>())
         .def(py::init<const std::string&, int>());
 }
