@@ -546,6 +546,430 @@ private:
 
 };
 
+// Class for loading in data and sorting with Shell sort
+class BookDatabase_Type2 : public BookDatabase {
+public:
+    BookDatabase_Type2(const std::string& file_path, const int depth = -1) : BookDatabase(file_path) {
+        bool loadedData = loadDataFromDisk(file_path, depth);
+        if (!loadedData) {
+            throw std::runtime_error("Failed to load data from disk");
+        }
+    }
+
+    DataFrame findBooks(const DataFrame& query) override {
+        // Placeholder implementation
+        // Just returns a 2x2 matrix for testing
+        DataFrame result(2, 2);
+        result << 1.0, 2.0,
+                  3.0, 4.0;
+        return result;
+    }
+
+    bool loadDataFromDisk(const std::string& file_path, const int depth = -1) override {
+        book_data_.clear();
+        genre_book_map.clear();
+
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            std::cerr << "Could not open file..." << std::endl;
+            return false;
+        }
+
+        std::string line;
+        std::getline(file, line); // Skip the header line
+
+        int index = 0;
+        std::string temp_line;
+        while (std::getline(file, line)) {
+            try {
+                // Handle potential multi-line fields within quotes
+                while (line.find('"') != std::string::npos && std::count(line.begin(), line.end(), '"') % 2 != 0) {
+                    std::string next_line;
+                    if (!std::getline(file, next_line)) break;
+                    line += "\n" + next_line;
+                }
+
+                auto fields = parseCSVLine(line);
+
+                if (fields.size() < 13) {
+                    std::cerr << "Line " << index + 1 << " has insufficient fields" << std::endl;
+                    continue;
+                }else if (fields.size() > 13) {
+                    std::cerr << "Line " << index + 1 << " has too many fields" << std::endl;
+                    continue;
+                }
+
+                std::string author = fields[0];
+                std::string bookformat = fields[1];
+                std::string desc = fields[2];
+                std::string genre = fields[3];
+                std::string img = fields[4];
+                std::string isbn = fields[5];
+                std::string isbn13 = fields[6];
+                std::string link = fields[7];
+
+                int page_count = safeStoi(fields[8], -1, trim);
+                float rating_value = safeStof(fields[9], -1.0f, trim);
+                int review_count = safeStoi(fields[10], -1, trim);
+                std::string title = fields[11];
+                int rating_count = safeStoi(fields[12], -1, trim);
+
+                std::vector<std::string> genres = splitString(genre);
+                std::vector<std::string> authors = splitString(author);
+
+                trim(title);
+                trim(desc);
+                trim(link);
+
+                BookEntry entry(title, authors, genres, desc, isbn, img, -1, rating_count, page_count, rating_value, -1.0, link);
+                book_data_.push_back(entry);
+
+                index++;
+
+                if (depth > 0 && index >= depth) {
+                    break;
+                }
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Error processing line " << index + 1 << ": " << e.what() << std::endl;
+                continue;
+            }
+        }
+
+        file.close();
+
+        if (book_data_.empty()) {
+            throw std::runtime_error("No valid book entries were loaded");
+            return false;
+        }
+
+        Shell_Sort(book_data_);
+
+        for (int i = 0; i < book_data_.size(); i++) {
+            for (const auto& g : book_data_[i].getGenres()) {
+                if (genre_book_map.find(g) == genre_book_map.end()) {
+                    genre_book_map[g] = std::set<int>{i};
+                } else {
+                    // auto it = std::lower_bound(genre_book_map[g].begin(), genre_book_map[g].end(), i, [this](int a, int b) {
+                    //     return a > b;
+                    // });
+                    // genre_book_map[g].insert(it, i);
+                    genre_book_map[g].insert(i);
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    std::map<std::string, std::vector<py::object>> filterBooks(const std::map<std::string, std::string>& filter, const bool exclusive = true) override {
+        // Placeholder implementation
+
+        std::set<int> book_indices;
+        std::vector<std::string> genres;
+
+        for (const auto& [key, value] : filter) {
+            if (key == "genre") {
+                genres = splitString(value);
+            }
+        }
+
+        if(exclusive){
+            // if exclusive filter is true, we will only include books that have all the genres in the filter
+            // to do this we will go through the genre_book_map and find the intersection of the book indices for each genre
+            // we will then take the union of these sets to get the final list of book indices
+            bool first = true;
+            for (const auto& g : genres) {
+                if (genre_book_map.find(g) != genre_book_map.end()) {
+                    if (first) {
+                        book_indices.insert(genre_book_map[g].begin(), genre_book_map[g].end());
+                        first = false;
+                    } else {
+                        std::set<int> temp_set;
+                        std::set_intersection(book_indices.begin(), book_indices.end(), genre_book_map[g].begin(), genre_book_map[g].end(), std::inserter(temp_set, temp_set.begin()));
+                        book_indices = temp_set;
+                    }
+                }
+            }
+
+        }else{
+            for (const auto& g : genres) {
+                std::cout << g << std::endl;
+                if (genre_book_map.find(g) != genre_book_map.end()) {
+                    book_indices.insert(genre_book_map[g].begin(), genre_book_map[g].end());
+                }
+            }
+        }
+
+
+        return convertToDataFrame(book_indices);
+
+    }
+
+    std::string testFunc(const std::string& input) override {
+        // Placeholder implementation
+        return "Test function called with input: " + input;
+    }
+
+    std::string printBooks(const int depth) override {
+        // Placeholder implementation
+        // Just print the first 'depth' books
+        std::string output = "";
+        for (int i = 0; i < depth; i++) {
+            output += "Genre: " + book_data_[i].getGenre() + ", Rating: " + std::to_string(book_data_[i].getRating()) + ", Title: " + book_data_[i].getTitle() + "\n";
+        }
+        return output;
+    }
+
+private:
+    // declare a vector of BookEntry object
+    // this will be used to store the data from the csv file
+    // the vector will be sorted by rating
+    std::vector<BookEntry> book_data_;
+
+    // we will also declare a map of strings (genre) to vectors of integers (indices in the book_data_ list)
+    // each vector will contain the BookEntry objects for that genre, sorted by rating (since book_data_ is sorted by rating, we just sort by index here)
+    // there can be multiple genres per book, so there can be multiple entries in the map for a single book
+    std::map<std::string, std::set<int>> genre_book_map;
+
+    std::map<std::string, std::vector<py::object>> convertToDataFrame(const std::set<int> book_indices) {
+        std::map<std::string, std::vector<py::object>> data;
+        //author,bookformat,desc,genre,img,isbn,isbn13,link,pages,rating,reviews,title,totalratings
+        for (const auto& i : book_indices) {
+            data["title"].push_back(py::str(book_data_[i].getTitle()));
+            data["author"].push_back(py::cast(book_data_[i].getAuthors()));
+            data["genre"].push_back(py::cast(book_data_[i].getGenres()));
+            data["description"].push_back(py::str(book_data_[i].getDescription()));
+            data["isbn"].push_back(py::str(book_data_[i].getIsbn()));
+            data["img"].push_back(py::str(book_data_[i].getImageLink()));
+            data["year"].push_back(py::int_(book_data_[i].getYear()));
+            data["rating_count"].push_back(py::int_(book_data_[i].getRatingCount()));
+            data["page_count"].push_back(py::int_(book_data_[i].getPageCount()));
+            data["rating"].push_back(py::float_(book_data_[i].getRating()));
+            data["price"].push_back(py::float_(book_data_[i].getPrice()));
+            data["link"].push_back(py::str(book_data_[i].getLink()));
+        }
+
+        return data;
+    }
+
+
+};
+
+
+// Class for loading in and sorting data with Quick Sort
+class BookDatabase_Type3 : public BookDatabase {
+public:
+    BookDatabase_Type3(const std::string& file_path, const int depth = -1) : BookDatabase(file_path) {
+        bool loadedData = loadDataFromDisk(file_path, depth);
+        if (!loadedData) {
+            throw std::runtime_error("Failed to load data from disk");
+        }
+    }
+
+    DataFrame findBooks(const DataFrame& query) override {
+        // Placeholder implementation
+        // Just returns a 2x2 matrix for testing
+        DataFrame result(2, 2);
+        result << 1.0, 2.0,
+                  3.0, 4.0;
+        return result;
+    }
+
+    bool loadDataFromDisk(const std::string& file_path, const int depth = -1) override {
+        book_data_.clear();
+        genre_book_map.clear();
+
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            std::cerr << "Could not open file..." << std::endl;
+            return false;
+        }
+
+        std::string line;
+        std::getline(file, line); // Skip the header line
+
+        int index = 0;
+        std::string temp_line;
+        while (std::getline(file, line)) {
+            try {
+                // Handle potential multi-line fields within quotes
+                while (line.find('"') != std::string::npos && std::count(line.begin(), line.end(), '"') % 2 != 0) {
+                    std::string next_line;
+                    if (!std::getline(file, next_line)) break;
+                    line += "\n" + next_line;
+                }
+
+                auto fields = parseCSVLine(line);
+
+                if (fields.size() < 13) {
+                    std::cerr << "Line " << index + 1 << " has insufficient fields" << std::endl;
+                    continue;
+                }else if (fields.size() > 13) {
+                    std::cerr << "Line " << index + 1 << " has too many fields" << std::endl;
+                    continue;
+                }
+
+                std::string author = fields[0];
+                std::string bookformat = fields[1];
+                std::string desc = fields[2];
+                std::string genre = fields[3];
+                std::string img = fields[4];
+                std::string isbn = fields[5];
+                std::string isbn13 = fields[6];
+                std::string link = fields[7];
+
+                int page_count = safeStoi(fields[8], -1, trim);
+                float rating_value = safeStof(fields[9], -1.0f, trim);
+                int review_count = safeStoi(fields[10], -1, trim);
+                std::string title = fields[11];
+                int rating_count = safeStoi(fields[12], -1, trim);
+
+                std::vector<std::string> genres = splitString(genre);
+                std::vector<std::string> authors = splitString(author);
+
+                trim(title);
+                trim(desc);
+                trim(link);
+
+                BookEntry entry(title, authors, genres, desc, isbn, img, -1, rating_count, page_count, rating_value, -1.0, link);
+                book_data_.push_back(entry);
+
+                index++;
+
+                if (depth > 0 && index >= depth) {
+                    break;
+                }
+            }
+            catch (const std::exception& e) {
+                std::cerr << "Error processing line " << index + 1 << ": " << e.what() << std::endl;
+                continue;
+            }
+        }
+
+        file.close();
+
+        if (book_data_.empty()) {
+            throw std::runtime_error("No valid book entries were loaded");
+            return false;
+        }
+
+        book_data_ = Quick_Sort(book_data_);
+
+        for (int i = 0; i < book_data_.size(); i++) {
+            for (const auto& g : book_data_[i].getGenres()) {
+                if (genre_book_map.find(g) == genre_book_map.end()) {
+                    genre_book_map[g] = std::set<int>{i};
+                } else {
+                    // auto it = std::lower_bound(genre_book_map[g].begin(), genre_book_map[g].end(), i, [this](int a, int b) {
+                    //     return a > b;
+                    // });
+                    // genre_book_map[g].insert(it, i);
+                    genre_book_map[g].insert(i);
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    std::map<std::string, std::vector<py::object>> filterBooks(const std::map<std::string, std::string>& filter, const bool exclusive = true) override {
+        // Placeholder implementation
+
+        std::set<int> book_indices;
+        std::vector<std::string> genres;
+
+        for (const auto& [key, value] : filter) {
+            if (key == "genre") {
+                genres = splitString(value);
+            }
+        }
+
+        if(exclusive){
+            // if exclusive filter is true, we will only include books that have all the genres in the filter
+            // to do this we will go through the genre_book_map and find the intersection of the book indices for each genre
+            // we will then take the union of these sets to get the final list of book indices
+            bool first = true;
+            for (const auto& g : genres) {
+                if (genre_book_map.find(g) != genre_book_map.end()) {
+                    if (first) {
+                        book_indices.insert(genre_book_map[g].begin(), genre_book_map[g].end());
+                        first = false;
+                    } else {
+                        std::set<int> temp_set;
+                        std::set_intersection(book_indices.begin(), book_indices.end(), genre_book_map[g].begin(), genre_book_map[g].end(), std::inserter(temp_set, temp_set.begin()));
+                        book_indices = temp_set;
+                    }
+                }
+            }
+
+        }else{
+            for (const auto& g : genres) {
+                std::cout << g << std::endl;
+                if (genre_book_map.find(g) != genre_book_map.end()) {
+                    book_indices.insert(genre_book_map[g].begin(), genre_book_map[g].end());
+                }
+            }
+        }
+
+
+        return convertToDataFrame(book_indices);
+
+    }
+
+    std::string testFunc(const std::string& input) override {
+        // Placeholder implementation
+        return "Test function called with input: " + input;
+    }
+
+    std::string printBooks(const int depth) override {
+        // Placeholder implementation
+        // Just print the first 'depth' books
+        std::string output = "";
+        for (int i = 0; i < depth; i++) {
+            output += "Genre: " + book_data_[i].getGenre() + ", Rating: " + std::to_string(book_data_[i].getRating()) + ", Title: " + book_data_[i].getTitle() + "\n";
+        }
+        return output;
+    }
+
+private:
+    // declare a vector of BookEntry object
+    // this will be used to store the data from the csv file
+    // the vector will be sorted by rating
+    std::vector<BookEntry> book_data_;
+
+    // we will also declare a map of strings (genre) to vectors of integers (indices in the book_data_ list)
+    // each vector will contain the BookEntry objects for that genre, sorted by rating (since book_data_ is sorted by rating, we just sort by index here)
+    // there can be multiple genres per book, so there can be multiple entries in the map for a single book
+    std::map<std::string, std::set<int>> genre_book_map;
+
+    std::map<std::string, std::vector<py::object>> convertToDataFrame(const std::set<int> book_indices) {
+        std::map<std::string, std::vector<py::object>> data;
+        //author,bookformat,desc,genre,img,isbn,isbn13,link,pages,rating,reviews,title,totalratings
+        for (const auto& i : book_indices) {
+            data["title"].push_back(py::str(book_data_[i].getTitle()));
+            data["author"].push_back(py::cast(book_data_[i].getAuthors()));
+            data["genre"].push_back(py::cast(book_data_[i].getGenres()));
+            data["description"].push_back(py::str(book_data_[i].getDescription()));
+            data["isbn"].push_back(py::str(book_data_[i].getIsbn()));
+            data["img"].push_back(py::str(book_data_[i].getImageLink()));
+            data["year"].push_back(py::int_(book_data_[i].getYear()));
+            data["rating_count"].push_back(py::int_(book_data_[i].getRatingCount()));
+            data["page_count"].push_back(py::int_(book_data_[i].getPageCount()));
+            data["rating"].push_back(py::float_(book_data_[i].getRating()));
+            data["price"].push_back(py::float_(book_data_[i].getPrice()));
+            data["link"].push_back(py::str(book_data_[i].getLink()));
+        }
+
+        return data;
+    }
+
+
+};
+
+
 PYBIND11_MODULE(book_database_cpp, m) {
     m.doc() = "C++ implementation of BookDatabase using pybind11";
 
