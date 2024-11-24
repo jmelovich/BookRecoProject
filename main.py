@@ -155,6 +155,12 @@ class BookRecommendationApp:
                     sr.Shell_Sort(filter_result, 'Ascending')
                 elif self.order_by.get() == 'Descending':
                     sr.Shell_Sort(filter_result, 'Descending')
+        if self.sort_algorithm.get() == 'Quick Sort':
+            if self.sort_by.get() == "Rating":
+                if self.order_by.get() == 'Ascending':
+                    filter_result = sr.Quick_Sort(filter_result, 'Ascending')
+                elif self.order_by.get() == 'Descending':
+                    filter_result = sr.Quick_Sort(filter_result, 'Descending')
         self.sorted_books_df = pd.DataFrame(filter_result)
         end_time = time.time()
         elapsed_time = end_time - start_time

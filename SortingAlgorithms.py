@@ -9,62 +9,73 @@ def Swap(books, index1, index2):
         books[category][index1] = books[category][index2]
         books[category][index2] = temp
 
-def Shell_Helper(books, iteration, current, form):
-    if form == 'Ascending':
-        if (current - iteration) >= 0 and type(current) == 'int':
-            if books['rating'][current] < (books['rating'][current - iteration]):
-                Swap(books, current, current - iteration)
-                Shell_Helper(books['rating'], iteration, current - iteration, form)
-    elif form == 'Descending':
-        if (current - iteration) >= 0 and type(current) == 'int':
-            if books['rating'][current] > (books['rating'][current - iteration]):
-                Swap(books, current, current - iteration)
-                Shell_Helper(books['rating'], iteration, current - iteration, form)
+def Shell_Helper(books, iteration, current):
+    if (current - iteration) >= 0 and type(current) == 'int':
+        if books['rating'][current] > (books['rating'][current - iteration]):
+            Swap(books, current, current - iteration)
+            Shell_Helper(books['rating'], iteration, current - iteration)
 
 
 # Main function for completing Shell sort on a list
 def Shell_Sort(books, form):  # Function to rearrange elements within the list in ascending order
     size = len(books['rating'])
     iteration = size // 2
+    while iteration > 0:
+        for i in range(size):
+            if i + iteration < size:
+                if books['rating'][i + iteration] > books['rating'][i]:  # Swaps two elements if they are out of order
+                    Swap(books, i, i + iteration)
+                    Shell_Helper(books, iteration, i)  # Helper to continue swapping the current element
+        iteration = iteration // 2
     if form == 'Ascending':
-        while iteration > 0:
-            for i in range(size):
-                if i + iteration < size:
-                    if books['rating'][i + iteration] < books['rating'][i]:  # Swaps two elements if they are out of order
-                        Swap(books, i, i + iteration)
-                        Shell_Helper(books, iteration, i, form)  # Helper to continue swapping the current element
-            iteration = iteration // 2
-    elif form == 'Descending':
-        while iteration > 0:
-            for i in range(size):
-                if i + iteration < size:
-                    if books['rating'][i + iteration] > books['rating'][i]:  # Swaps two elements if they are out of order
-                        Swap(books, i, i + iteration)
-                        Shell_Helper(books, iteration, i, form)  # Helper to continue swapping the current element
-            iteration = iteration // 2
+        for i in range(len(books['rating']) // 2):
+            Swap(books, i, len(books['rating']) - 1 - i)
 
 
-def Quick_Helper(Updated_list, books):
-    size = len(books['rating'])
+def Change_book(Updated_list, books, index):
+    labels = ["title", "author", "genre", "description", "isbn", "img", "year", "rating_count", "page_count",
+              "price", "link", "rating"]
+    for i in range(len(labels)):
+        Updated_list[labels[i]][index] = books[labels[i]][index]
+
+def Quick_Helper(Updated_list, Original, books, index, iteration):
+    size = len(books)
     leftlist = []
+    leftlist_index = []
     rightlist = []
-    pivot = books['rating'][size - 1]
+    rightlist_index = []
+    pivot = books[size - 1]
+    pivot_index = index[len(index) - 1]
+    if size <= 1:
+        Change_book(Updated_list, Original, pivot_index)
+        return
     for i in range(size - 1):
-        if books['rating'][i] <= pivot:
-            leftlist.append(books['rating'][i])
-        elif books['rating'][i] > pivot:
-            rightlist.append(books['rating'][i])
+        if books[i] >= pivot:
+            leftlist.append(books[i])
+            if iteration == 0:
+                leftlist_index.append(i)
+            else:
+                leftlist_index.append(index[i])
+        elif books[i] < pivot:
+            rightlist.append(books[i])
+            if iteration == 0:
+                rightlist_index.append(i)
+            else:
+                rightlist_index.append(index[i])
     if len(leftlist) > 0:
-        Quick_Helper(Updated_list, leftlist)
-    Updated_list.append(pivot)
+        Quick_Helper(Updated_list, Original, leftlist, leftlist_index, 1)
     if len(rightlist) > 0:
-        Quick_Helper(Updated_list, rightlist)
+        Quick_Helper(Updated_list, Original, rightlist, rightlist_index, 1)
 
 
-def Quick_Sort(books):
-    Updated_list = []
-    Quick_Helper(Updated_list, books)
-    books = Updated_list
+
+def Quick_Sort(books, form):
+    Updated_list = books
+    Quick_Helper(Updated_list, books, books['rating'], [0], 0)
+    if form == "Ascending":
+        for i in range(len(Updated_list['rating']) // 2):
+            Swap(Updated_list, i, len(Updated_list['rating']) - 1 - i)
+    return Updated_list
 
 
 def mergeSort(books, left, right):
