@@ -5,6 +5,7 @@ import tkinter as tk
 from ttkwidgets.autocomplete import AutocompleteEntry
 import kagglehub
 import time
+import SortingAlgorithms as sr
 
 from src.ui_utils import (
     create_label, create_entry, create_button, 
@@ -89,6 +90,10 @@ class BookRecommendationApp:
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 8, 0)
         self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 8, 1)
 
+        sorting_order = ["Ascending", "Descending"]
+        create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 9, 0)
+        self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 9, 1)
+
         # Author
         # TODO: Add Autocomplete for authors; allow user to select one or multiple authors
         create_label(self.input_frame, "Author(s):", "Poppins", '#8c92ac', 2, 0)
@@ -144,6 +149,12 @@ class BookRecommendationApp:
         
         start_time = time.time()
         filter_result = self.book_db.filterBooks(filters, True)
+        if self.sort_algorithm.get() == 'Shell Sort':
+            if self.sort_by.get() == "Rating":
+                if self.order_by.get() == 'Ascending':
+                    sr.Shell_Sort(filter_result, 'Ascending')
+                elif self.order_by.get() == 'Descending':
+                    sr.Shell_Sort(filter_result, 'Descending')
         self.sorted_books_df = pd.DataFrame(filter_result)
         end_time = time.time()
         elapsed_time = end_time - start_time

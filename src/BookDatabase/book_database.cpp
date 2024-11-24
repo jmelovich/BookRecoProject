@@ -539,7 +539,7 @@ private:
             data["price"].push_back(py::float_(book_data_[i].getPrice()));
             data["link"].push_back(py::str(book_data_[i].getLink()));
         }
-        
+
         return data;
     }
 
