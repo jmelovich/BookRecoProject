@@ -139,7 +139,6 @@ void merge(vector<BookEntry>& books, int left, int mid, int right){
 }
 
 
-
 // helper functions
 void trim(std::string& str) {
     str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));

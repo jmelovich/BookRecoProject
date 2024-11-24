@@ -67,27 +67,48 @@ class BookRecommendationApp:
         create_button(self.input_frame, "+", self.add_genre, "Poppins", 3, 1, 0, 2)
 
         # Price inputs
-        create_label(self.input_frame, "Min Price Point:", "Poppins", '#8c92ac', 2, 0)
-        self.entry_minprice = create_entry(self.input_frame, 20, 2, 1)
+        # create_label(self.input_frame, "Min Price Point:", "Poppins", '#8c92ac', 2, 0)
+        # self.entry_minprice = create_entry(self.input_frame, 20, 2, 1)
 
-        create_label(self.input_frame, "Max Price Point:", "Poppins", '#8c92ac', 3, 0)
-        self.entry_maxprice = create_entry(self.input_frame, 20, 3, 1)
+        # create_label(self.input_frame, "Max Price Point:", "Poppins", '#8c92ac', 3, 0)
+        # self.entry_maxprice = create_entry(self.input_frame, 20, 3, 1)
 
         # Search terms
-        create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 4, 0)
-        self.search_terms_entry = create_entry(self.input_frame, 20, 4, 1)
+        create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 5, 0)
+        self.search_terms_entry = create_entry(self.input_frame, 20, 5, 1)
 
         # Find books button
-        create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 5, 1)
+        create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 6, 1)
 
         # Sorting options
         algorithms = ["Merge Sort", "Shell Sort", "Quick Sort"]
-        create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 6, 0)
-        self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 6, 1)
+        create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 7, 0)
+        self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 7, 1)
 
         sorting_var = ["Rating", "Review Count", "Page number", "Date", "Alphabetical"]
-        create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 7, 0)
-        self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 7, 1)
+        create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 8, 0)
+        self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 8, 1)
+
+        # Author
+        # TODO: Add Autocomplete for authors; allow user to select one or multiple authors
+        create_label(self.input_frame, "Author(s):", "Poppins", '#8c92ac', 2, 0)
+        self.entry_author = create_entry(self.input_frame, 20, 2, 1)
+
+        # Title
+        # TODO: Add Autocomplete for Title; allow user to select title
+        create_label(self.input_frame, "Title:", "Poppins", '#8c92ac', 3, 0)
+        self.entry_title = create_entry(self.input_frame, 20, 3, 1)
+
+        # Bookformat
+        # TODO: Add Autocomplete for Bookformat; allow user to select bookformat
+        create_label(self.input_frame, "Bookformat:", "Poppins", '#8c92ac', 4, 0)
+        self.entry_bookformat = create_entry(self.input_frame, 20, 4, 1)
+
+        # Page Count
+        # TODO: Add page count option for people to select
+
+        # Total Ratings
+        # TODO: ADD total ratings option for people to select
 
     def add_genre(self):
         genre = self.genre_entry.get().strip()
