@@ -161,6 +161,12 @@ class BookRecommendationApp:
                     filter_result = sr.Quick_Sort(filter_result, 'Ascending')
                 elif self.order_by.get() == 'Descending':
                     filter_result = sr.Quick_Sort(filter_result, 'Descending')
+        if self.sort_algorithm.get() == 'Merge Sort':
+            if self.sort_by.get() == "Rating":
+                if self.order_by.get() == 'Ascending':
+                    sr.mergeSort(filter_result, 'Ascending')
+                elif self.order_by.get() == 'Descending':
+                    sr.mergeSort(filter_result, 'Descending')
         self.sorted_books_df = pd.DataFrame(filter_result)
         end_time = time.time()
         elapsed_time = end_time - start_time
