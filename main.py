@@ -81,7 +81,7 @@ class BookRecommendationApp:
         create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 5, 1)
 
         # Sorting options
-        algorithms = ["Merge Sort", "Sleep Sort", "Shell Sort"]
+        algorithms = ["Merge Sort", "Shell Sort", "Quick Sort"]
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 6, 0)
         self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 6, 1)
 

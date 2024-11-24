@@ -87,6 +87,58 @@ vector<BookEntry> Quick_Sort(vector<BookEntry> books){
     return Updated_books;
 }
 
+// I used slides 89 from 6-Sorting as reference
+void mergeSort(vector<BookEntry>& books, int left, int right){
+    if (left < right){
+        int mid = left + (right - left) /2;
+        mergeSort(books, left, mid);
+        mergeSort(books, mid+1, right);
+
+        merge(books, left, mid, right);
+    }
+}
+
+// I used slides 90 from 6-Sorting as reference
+void merge(vector<BookEntry>& books, int left, int mid, int right){
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    vector<BookEntry> left_books;
+    vector<BookEntry> right_books;
+
+    for (int i = 0; i < n1; i++){
+        left_books.push_back(books[left + i]);
+    };
+    for (int j = 0; j < n2; j++){
+        right_books.push_back(books[mid + 1 + j]);
+    };
+
+    int i = 0;
+    int j = 0;
+    int k = left;
+    while(i < n1 && j < n2){
+        if (left_books[i] <= right_books[j]){
+            books[k] = left_books[i];
+            i++;
+        }
+        else{
+            books[k] = right_books[j];
+            j++;
+        }
+        k++;
+    }
+    while(i < n1){
+        books[k] = left_books[i];
+        i++;
+        k++;
+    }
+    while(j < n2){
+        books[k] = right_books[j];
+        j++;
+        k++;
+    }
+}
+
+
 
 // helper functions
 void trim(std::string& str) {
