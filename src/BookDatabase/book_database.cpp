@@ -130,6 +130,8 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current){
 
 // Shell sort algorithm for sorting books by rating in descending order
 void Shell_Sort(std::vector<BookEntry*> &books, const std::string& sortBy = "rating"){
+    // sortBy can be the following values:
+    // "rating", "review_count", "num_pages", "title"
     int size = books.size();
     int iteration = size / 2;
     while(iteration > 0){
@@ -150,7 +152,7 @@ void Shell_Sort(std::vector<BookEntry*> &books, const std::string& sortBy = "rat
 
 // Helper function to perform the quick sort algorithm recursively
 // Sorts the book objects in descending order based on rating
-void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*> books){
+void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*>& books){
     int size = books.size();
     std::vector<BookEntry*> leftlist;
     std::vector<BookEntry*> rightlist;
