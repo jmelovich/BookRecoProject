@@ -67,13 +67,6 @@ class BookRecommendationApp:
         
         create_button(self.input_frame, "+", self.add_genre, "Poppins", 3, 1, 0, 2)
 
-        # Price inputs
-        # create_label(self.input_frame, "Min Price Point:", "Poppins", '#8c92ac', 2, 0)
-        # self.entry_minprice = create_entry(self.input_frame, 20, 2, 1)
-
-        # create_label(self.input_frame, "Max Price Point:", "Poppins", '#8c92ac', 3, 0)
-        # self.entry_maxprice = create_entry(self.input_frame, 20, 3, 1)
-
         # Search terms
         create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 5, 0)
         self.search_terms_entry = create_entry(self.input_frame, 20, 5, 1)
@@ -86,11 +79,11 @@ class BookRecommendationApp:
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 7, 0)
         self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 7, 1)
 
-        sorting_var = ["Rating", "Review Count", "Page number", "Date", "Alphabetical"]
+        sorting_var = ["Rating", "Review Count", "Page number", "Alphabetical"]
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 8, 0)
         self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 8, 1)
 
-        sorting_order = ["Ascending", "Descending"]
+        sorting_order = ["Descending", "Ascending"]
         create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 9, 0)
         self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 9, 1)
 
@@ -140,34 +133,47 @@ class BookRecommendationApp:
         print(f"Clicked on row index: {index}")
         print(self.sorted_books_df.iloc[index])
         webbrowser.open(self.sorted_books_df.iloc[index]['link'])
+        
+    def collect_parameters(self):
+        parameters = {}
+        # get the filters
+        if self.selected_genres:
+            parameters["genre"] = ",".join(self.selected_genres)
+        # get the author(s), title, and bookformat
+        # author is a list, so needs to be revised first
+        parameters['titleFilter'] = self.entry_title.get()
+        parameters['bookFormat'] = self.entry_bookformat.get()
+        
+        # get the sorting algorithm
+        if self.sort_algorithm.get() == 'Shell Sort':
+            parameters["sortMethod"] = 'shell'
+        elif self.sort_algorithm.get() == 'Quick Sort':
+            parameters["sortMethod"] = 'quick'
+        elif self.sort_algorithm.get() == 'Merge Sort':
+            parameters["sortMethod"] = 'merge'
+        # get the sorting order
+        if self.order_by.get() == 'Ascending':
+            parameters["sortOrder"] = 'asc'
+        elif self.order_by.get() == 'Descending':
+            parameters["sortOrder"] = 'desc'
+        # get the sorting criteria
+        if self.sort_by.get() == 'Rating':
+            parameters["sortBy"] = 'rating'
+        elif self.sort_by.get() == 'Review Count':
+            parameters["sortBy"] = 'review_count'
+        elif self.sort_by.get() == 'Page number':
+            parameters["sortBy"] = 'num_pages'
+        elif self.sort_by.get() == 'Alphabetical':
+            parameters["sortBy"] = 'title'
+        
+        return parameters
 
     def find_books(self):
-        print(self.selected_genres)
-        filters = {
-            "genre": ",".join(self.selected_genres)
-        }
-        
-        start_time = time.time()
-        filter_result = self.book_db.filterBooks(filters, True)
-        if self.sort_algorithm.get() == 'Shell Sort':
-            if self.sort_by.get() == "Rating":
-                if self.order_by.get() == 'Ascending':
-                    sr.Shell_Sort(filter_result, 'Ascending')
-                elif self.order_by.get() == 'Descending':
-                    sr.Shell_Sort(filter_result, 'Descending')
-        if self.sort_algorithm.get() == 'Quick Sort':
-            if self.sort_by.get() == "Rating":
-                if self.order_by.get() == 'Ascending':
-                    filter_result = sr.Quick_Sort(filter_result, 'Ascending')
-                elif self.order_by.get() == 'Descending':
-                    filter_result = sr.Quick_Sort(filter_result, 'Descending')
-        if self.sort_algorithm.get() == 'Merge Sort':
-            if self.sort_by.get() == "Rating":
-                if self.order_by.get() == 'Ascending':
-                    sr.mergeSort(filter_result, 'Ascending')
-                elif self.order_by.get() == 'Descending':
-                    sr.mergeSort(filter_result, 'Descending')
-        self.sorted_books_df = pd.DataFrame(filter_result)
+        parameters = self.collect_parameters()
+        print(parameters)
+        start_time = time.time()       
+        search_result = self.book_db.findBooks(parameters)   
+        self.sorted_books_df = pd.DataFrame(search_result)
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"FilterBooks completed in {elapsed_time:.2f} seconds")
@@ -187,7 +193,7 @@ def load_data_cpp(file_path):
     if not os.path.exists(file_path):
         downloaded_path = kagglehub.dataset_download("mdhamani/goodreads-books-100k")
         os.rename(downloaded_path + "/GoodReads_100k_books.csv", file_path)
-    return book_database_cpp.BookDatabase_Type1(file_path)
+    return book_database_cpp.BookDatabase_Type0(file_path)
 
 if __name__ == "__main__":
     root = tk.Tk()
