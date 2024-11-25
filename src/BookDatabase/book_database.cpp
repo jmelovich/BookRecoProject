@@ -15,6 +15,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <unordered_set>
 
 namespace py = pybind11;
 
@@ -117,7 +118,7 @@ public:
 // Helper function for computing additional variable swaps that occur during shell sort
 void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current){
     if(current - iteration >= 0){
-        if(books[current]->getRatingCount() > books[current - iteration]->getRatingCount()){
+        if(books[current]->getRating() > books[current - iteration]->getRating()){
             BookEntry* temp = books[current];
             books[current] = books[current  - iteration];
             books[current - iteration] = temp;
@@ -128,13 +129,13 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current){
 
 
 // Shell sort algorithm for sorting books by rating in descending order
-void Shell_Sort(std::vector<BookEntry*> &books){
+void Shell_Sort(std::vector<BookEntry*> &books, const std::string& sortBy = "rating"){
     int size = books.size();
     int iteration = size / 2;
     while(iteration > 0){
         for(int i = 0; i < size; i++){
             if(i + iteration < size){
-                if(books[i + iteration]->getRatingCount() > books[i]->getRatingCount()){
+                if(books[i + iteration]->getRating() > books[i]->getRating()){
                     BookEntry* temp = books[i];
                     books[i] = books[i + iteration];
                     books[i + iteration] = temp;
@@ -155,10 +156,10 @@ void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*
     std::vector<BookEntry*> rightlist;
     BookEntry* pivot = books[size - 1];
     for (int i = 0; i < size - 1; i++){
-        if (books[i]->getRatingCount() >= pivot->getRatingCount()){
+        if (books[i]->getRating() >= pivot->getRating()){
             leftlist.push_back(books[i]);
         }
-        else if (books[i]->getRatingCount() < pivot->getRatingCount()){
+        else if (books[i]->getRating() < pivot->getRating()){
             rightlist.push_back(books[i]);
         }
     }
@@ -173,7 +174,7 @@ void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*
 
 
 // Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
-std::vector<BookEntry*> Quick_Sort(std::vector<BookEntry*> books){
+std::vector<BookEntry*> Quick_Sort(std::vector<BookEntry*>& books, const std::string& sortBy = "rating"){
     std::vector<BookEntry*> Updated_books;
     Quick_Helper(Updated_books, books);
     return Updated_books;
@@ -182,11 +183,11 @@ std::vector<BookEntry*> Quick_Sort(std::vector<BookEntry*> books){
 
 
 // I used slides 90 from 6-Sorting as reference
-void merge(std::vector<BookEntry>& books, int left, int mid, int right){
+void merge(std::vector<BookEntry*>& books, int left, int mid, int right){
     int n1 = mid - left + 1;
     int n2 = right - mid;
-    std::vector<BookEntry> left_books;
-    std::vector<BookEntry> right_books;
+    std::vector<BookEntry*> left_books;
+    std::vector<BookEntry*> right_books;
 
     for (int i = 0; i < n1; i++){
         left_books.push_back(books[left + i]);
@@ -199,7 +200,7 @@ void merge(std::vector<BookEntry>& books, int left, int mid, int right){
     int j = 0;
     int k = left;
     while(i < n1 && j < n2){
-        if (left_books[i].getRating() <= right_books[j].getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
+        if (left_books[i]->getRating() <= right_books[j]->getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
             books[k] = left_books[i];
             i++;
         }
@@ -222,11 +223,11 @@ void merge(std::vector<BookEntry>& books, int left, int mid, int right){
 }
 
 // I used slides 89 from 6-Sorting as reference
-void mergeSort(std::vector<BookEntry>& books, int left, int right){
+void Merge_Sort(std::vector<BookEntry*>& books, int left, int right, const std::string& sortBy = "rating"){
     if (left < right){
         int mid = left + (right - left) /2;
-        mergeSort(books, left, mid);
-        mergeSort(books, mid+1, right);
+        Merge_Sort(books, left, mid);
+        Merge_Sort(books, mid+1, right);
 
         merge(books, left, mid, right);
     }
@@ -324,9 +325,9 @@ public:
     virtual ~BookDatabase() = default;
 
     // Abstract methods
-    virtual std::map<std::string, std::vector<py::object>> findBooks(const std::map<std::string, std::string>& filter, const std::string& sortMethod) = 0;
+    virtual std::map<std::string, std::vector<py::object>> findBooks(const std::map<std::string, std::string>& parameters) = 0;
     virtual bool loadDataFromDisk(const std::string& file_path, const int depth = -1) = 0;
-    virtual std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& filter, const bool exclusive = true) = 0;
+    virtual std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& parameters, const bool exclusive = true) = 0;
 
 protected:
     std::string file_path_;
@@ -342,9 +343,9 @@ public:
         }
     }
 
-    std::map<std::string, std::vector<py::object>> findBooks(const std::map<std::string, std::string>& filter, const std::string& sortMethod) override {
-        std::vector<BookEntry*> filtered_books = filterBooks(filter);
-        sortBooks(filtered_books, sortMethod);
+    std::map<std::string, std::vector<py::object>> findBooks(const std::map<std::string, std::string>& parameters) override {
+        std::vector<BookEntry*> filtered_books = filterBooks(parameters);
+        sortBooks(filtered_books, parameters);
         return convertToDataFrame(filtered_books);
     }
 
@@ -439,60 +440,76 @@ public:
         return true;
     }
 
-
-    std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& filter, const bool exclusive = true) {
-        // Placeholder implementation
-
-        std::vector<BookEntry*> book_indices;
+    std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& parameters, const bool exclusive = true) {
+        std::unordered_set<BookEntry*> unique_books;
         std::vector<std::string> genres;
 
-        for (const auto& [key, value] : filter) {
+        for (const auto& [key, value] : parameters) {
             if (key == "genre") {
                 genres = splitString(value);
             }
         }
 
-        if(exclusive){
-            // if exclusive filter is true, we will only include books that have all the genres in the filter
-            // to do this we will go through the genre_book_map and find the intersection of the book indices for each genre
-            // we will then take the union of these sets to get the final list of book indices
+        if (exclusive) {
             bool first = true;
             for (const auto& g : genres) {
                 if (genre_book_map.find(g) != genre_book_map.end()) {
                     if (first) {
-                        book_indices.insert(book_indices.end(), genre_book_map[g].begin(), genre_book_map[g].end());
+                        unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
                         first = false;
                     } else {
-                        std::vector<BookEntry*> temp_vector;
-                          book_indices = temp_vector;
-                        std::set_intersection(book_indices.begin(), book_indices.end(), genre_book_map[g].begin(), genre_book_map[g].end(), std::inserter(temp_vector, temp_vector.end()));
-                        book_indices = temp_vector;
+                        std::unordered_set<BookEntry*> temp_set;
+                        for (auto book : genre_book_map[g]) {
+                            if (unique_books.find(book) != unique_books.end()) {
+                                temp_set.insert(book);
+                            }
+                        }
+                        unique_books = std::move(temp_set);
                     }
                 }
             }
-
-        }else{
+        } else {
             for (const auto& g : genres) {
-                std::cout << g << std::endl;
                 if (genre_book_map.find(g) != genre_book_map.end()) {
-                    book_indices.insert(book_indices.end(), genre_book_map[g].begin(), genre_book_map[g].end());
+                    unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
                 }
             }
         }
 
-        return book_indices;
+        // Convert the unordered_set back to vector
+        return std::vector<BookEntry*>(unique_books.begin(), unique_books.end());
     }
 
-    void sortBooks(std::vector<BookEntry*> filtered_books, const std::string& sortMethod){
+
+    void sortBooks(std::vector<BookEntry*>& filtered_books, const std::map<std::string, std::string>& parameters){
+        std::string sortMethod = "quick";
+        std::string sortBy = "rating";
+        bool ascending = false;
+        for (const auto& [key, value] : parameters) {
+            if (key == "sortMethod") {
+                sortMethod = value;
+            }
+            if (key == "sortOrder") {
+                ascending = value == "asc";
+            }
+            if (key == "sortBy") {
+                sortBy = value;
+            }
+        }
         if(sortMethod == "quick"){
-            Quick_Sort(filtered_books);
+            Quick_Sort(filtered_books, sortBy); // doesn't seem to work at the moment
         }else if(sortMethod == "shell"){
-            Shell_Sort(filtered_books);
+            Shell_Sort(filtered_books, sortBy);
         }else if(sortMethod == "merge"){
-            mergeSort(book_data_, 0, book_data_.size() - 1);
+            Merge_Sort(filtered_books, 0, filtered_books.size() - 1, sortBy);
         }else{
             std::cerr << "Invalid sort method" << std::endl;
             return;
+        }
+        // if ascending is true, we will reverse the order of filtered_books
+        // this means the sort functions should sort in descending order
+        if(ascending){
+            std::reverse(filtered_books.begin(), filtered_books.end());
         }
     }
 

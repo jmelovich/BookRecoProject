@@ -79,11 +79,11 @@ class BookRecommendationApp:
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 7, 0)
         self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 7, 1)
 
-        sorting_var = ["Rating", "Review Count", "Page number", "Date", "Alphabetical"]
+        sorting_var = ["Rating", "Review Count", "Page number", "Alphabetical"]
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 8, 0)
         self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 8, 1)
 
-        sorting_order = ["Ascending", "Descending"]
+        sorting_order = ["Descending", "Ascending"]
         create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 9, 0)
         self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 9, 1)
 
@@ -136,30 +136,36 @@ class BookRecommendationApp:
 
     def find_books(self):
         print(self.selected_genres)
-        filters = {
+        parameters = {
             "genre": ",".join(self.selected_genres)
         }
         
-        sortMethod = ""
         start_time = time.time()
 
         if self.sort_algorithm.get() == 'Shell Sort':
-            sortMethod = 'shell'
-            # if self.sort_by.get() == "Rating":
-            #     if self.order_by.get() == 'Ascending':
-            #     elif self.order_by.get() == 'Descending':
+            parameters["sortMethod"] = 'shell'
         elif self.sort_algorithm.get() == 'Quick Sort':
-            sortMethod = 'quick'
-            # if self.sort_by.get() == "Rating":
-            #     if self.order_by.get() == 'Ascending':
-            #     elif self.order_by.get() == 'Descending':
+            parameters["sortMethod"] = 'quick'
         elif self.sort_algorithm.get() == 'Merge Sort':
-            sortMethod = 'merge'
-            # if self.sort_by.get() == "Rating":
-            #     if self.order_by.get() == 'Ascending':
-            #     elif self.order_by.get() == 'Descending':
-                    
-        search_result = self.book_db.findBooks(filters, sortMethod)   
+            parameters["sortMethod"] = 'merge'
+
+        if self.order_by.get() == 'Ascending':
+            parameters["sortOrder"] = 'asc'
+        elif self.order_by.get() == 'Descending':
+            parameters["sortOrder"] = 'desc'
+            
+        if self.sort_by.get() == 'Rating':
+            parameters["sortBy"] = 'rating'
+        elif self.sort_by.get() == 'Review Count':
+            parameters["sortBy"] = 'review_count'
+        elif self.sort_by.get() == 'Page number':
+            parameters["sortBy"] = 'num_pages'
+        elif self.sort_by.get() == 'Alphabetical':
+            parameters["sortBy"] = 'title'
+            
+        print(parameters)    
+    
+        search_result = self.book_db.findBooks(parameters)   
         self.sorted_books_df = pd.DataFrame(search_result)
         end_time = time.time()
         elapsed_time = end_time - start_time
