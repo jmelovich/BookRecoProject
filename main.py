@@ -133,27 +133,30 @@ class BookRecommendationApp:
         print(f"Clicked on row index: {index}")
         print(self.sorted_books_df.iloc[index])
         webbrowser.open(self.sorted_books_df.iloc[index]['link'])
-
-    def find_books(self):
-        print(self.selected_genres)
-        parameters = {
-            "genre": ",".join(self.selected_genres)
-        }
         
-        start_time = time.time()
-
+    def collect_parameters(self):
+        parameters = {}
+        # get the filters
+        if self.selected_genres:
+            parameters["genre"] = ",".join(self.selected_genres)
+        # get the author(s), title, and bookformat
+        # author is a list, so needs to be revised first
+        parameters['titleFilter'] = self.entry_title.get()
+        parameters['bookFormat'] = self.entry_bookformat.get()
+        
+        # get the sorting algorithm
         if self.sort_algorithm.get() == 'Shell Sort':
             parameters["sortMethod"] = 'shell'
         elif self.sort_algorithm.get() == 'Quick Sort':
             parameters["sortMethod"] = 'quick'
         elif self.sort_algorithm.get() == 'Merge Sort':
             parameters["sortMethod"] = 'merge'
-
+        # get the sorting order
         if self.order_by.get() == 'Ascending':
             parameters["sortOrder"] = 'asc'
         elif self.order_by.get() == 'Descending':
             parameters["sortOrder"] = 'desc'
-            
+        # get the sorting criteria
         if self.sort_by.get() == 'Rating':
             parameters["sortBy"] = 'rating'
         elif self.sort_by.get() == 'Review Count':
@@ -162,9 +165,13 @@ class BookRecommendationApp:
             parameters["sortBy"] = 'num_pages'
         elif self.sort_by.get() == 'Alphabetical':
             parameters["sortBy"] = 'title'
-            
-        print(parameters)    
-    
+        
+        return parameters
+
+    def find_books(self):
+        parameters = self.collect_parameters()
+        print(parameters)
+        start_time = time.time()       
         search_result = self.book_db.findBooks(parameters)   
         self.sorted_books_df = pd.DataFrame(search_result)
         end_time = time.time()
