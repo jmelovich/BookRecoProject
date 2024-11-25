@@ -202,7 +202,7 @@ void merge(std::vector<BookEntry*>& books, int left, int mid, int right){
     int j = 0;
     int k = left;
     while(i < n1 && j < n2){
-        if (left_books[i]->getRating() <= right_books[j]->getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
+        if (left_books[i]->getRating() >= right_books[j]->getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
             books[k] = left_books[i];
             i++;
         }
