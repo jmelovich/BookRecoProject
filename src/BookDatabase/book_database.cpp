@@ -22,201 +22,6 @@ namespace py = pybind11;
 using DataFrame = Eigen::MatrixXd;
 
 
-// Helper function for computing additional variable swaps that occur during shell sort
-void Shell_Helper(vector<BookEntry> & books, int iteration, int current){
-    if(current - iteration >= 0){
-        if(books[current].getRatingCount() > books[current - iteration].getRatingCount()){
-            BookEntry temp = books[current];
-            books[current] = books[current  - iteration];
-            books[current - iteration] = temp;
-            Shell_Helper(books, iteration, current - iteration);
-        }
-    }
-}
-
-
-// Shell sort algorithm for sorting books by rating in descending order
-void Shell_Sort(vector<BookEntry> &books){
-    int size = books.size();
-    int iteration = size / 2;
-    while(iteration > 0){
-        for(int i = 0; i < size; i++){
-            if(i + iteration < size){
-                if(books[i + iteration].getRatingCount() > books[i].getRatingCount()){
-                    BookEntry temp = books[i];
-                    books[i] = books[i + iteration];
-                    books[i + iteration] = temp;
-                    Shell_Helper(books, iteration, i);
-                }
-            }
-        }
-        iteration = iteration / 2;
-    }
-}
-
-
-// Helper function to perform the quick sort algorithm recursively
-// Sorts the book objects in descending order based on rating
-void Quick_Helper(vector<BookEntry>& Updated_books, vector<BookEntry> books){
-    int size = books.size();
-    vector<BookEntry> leftlist;
-    vector<BookEntry> rightlist;
-    BookEntry pivot = books[size - 1];
-    for (int i = 0; i < size - 1; i++){
-        if (books[i].getRatingCount() >= pivot.getRatingCount()){
-            leftlist.push_back(books[i]);
-        }
-        else if (books[i].getRatingCount() < pivot.getRatingCount()){
-            rightlist.push_back(books[i]);
-        }
-    }
-    if (leftlist.size() > 0){
-        Quick_Helper(Updated_books, leftlist);
-    }
-    Updated_books.push_back(pivot);
-    if (rightlist.size() > 0){
-      Quick_Helper(Updated_books, rightlist);
-    }
-}
-
-
-// Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
-vector<BookEntry> Quick_Sort(vector<BookEntry> books){
-    vector<BookEntry> Updated_books;
-    Quick_Helper(Updated_books, books);
-    return Updated_books;
-}
-
-// I used slides 89 from 6-Sorting as reference
-void mergeSort(vector<BookEntry>& books, int left, int right){
-    if (left < right){
-        int mid = left + (right - left) /2;
-        mergeSort(books, left, mid);
-        mergeSort(books, mid+1, right);
-
-        merge(books, left, mid, right);
-    }
-}
-
-// I used slides 90 from 6-Sorting as reference
-void merge(vector<BookEntry>& books, int left, int mid, int right){
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
-    vector<BookEntry> left_books;
-    vector<BookEntry> right_books;
-
-    for (int i = 0; i < n1; i++){
-        left_books.push_back(books[left + i]);
-    };
-    for (int j = 0; j < n2; j++){
-        right_books.push_back(books[mid + 1 + j]);
-    };
-
-    int i = 0;
-    int j = 0;
-    int k = left;
-    while(i < n1 && j < n2){
-        if (left_books[i] <= right_books[j]){
-            books[k] = left_books[i];
-            i++;
-        }
-        else{
-            books[k] = right_books[j];
-            j++;
-        }
-        k++;
-    }
-    while(i < n1){
-        books[k] = left_books[i];
-        i++;
-        k++;
-    }
-    while(j < n2){
-        books[k] = right_books[j];
-        j++;
-        k++;
-    }
-}
-
-
-// helper functions
-void trim(std::string& str) {
-    str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));
-    str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
-}
-
-// csv file has format: author,bookformat,desc,genre,img,isbn,isbn13,link,pages,rating,reviews,title,totalratings
-auto parseCSVLine = [](const std::string& line) -> std::vector<std::string> {
-    std::vector<std::string> fields;
-    std::string field;
-    bool inQuotes = false;
-
-    for (size_t i = 0; i < line.length(); ++i) {
-        if (line[i] == '"') {
-            if (inQuotes && i + 1 < line.length() && line[i + 1] == '"') {
-                // Handle escaped quotes within a quoted field
-                field += '"';
-                ++i;
-            } else {
-                // Toggle the inQuotes state
-                inQuotes = !inQuotes;
-            }
-        } else if (line[i] == ',' && !inQuotes) {
-            // Comma outside quotes signifies a new field
-            fields.push_back(field);
-            field.clear();
-        } else {
-            // Regular character or comma inside quotes
-            field += line[i];
-        }
-    }
-    fields.push_back(field); // Add the last field
-
-    // Trim whitespace from each field
-    for (auto& f : fields) {
-        trim(f);
-    }
-
-    return fields;
-};
-
-auto safeStoi = [](const std::string& str, int defaultVal, auto trim) -> int {
-    try {
-        if (str.empty()) return defaultVal;
-        trim(const_cast<std::string&>(str));
-        return std::stoi(str);
-    } catch (...) {
-        return defaultVal;
-    }
-};
-
-auto safeStof = [](const std::string& str, float defaultVal, auto trim) -> float {
-    try {
-        if (str.empty()) return defaultVal;
-        trim(const_cast<std::string&>(str));
-        return std::stof(str);
-    } catch (...) {
-        return defaultVal;
-    }
-};
-
-auto splitString = [](const std::string& str) -> std::vector<std::string> {
-    std::vector<std::string> result;
-    std::istringstream ss(str);
-    std::string token;
-    while (std::getline(ss, token, ',')) {
-        trim(token);
-        result.push_back(token);
-    }
-    return result;
-};
-
-
-////////////////////////////////////////////////////////////////////
-// CLASS DEFINITIONS ///////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-
-
 class BookEntry {
 private:
     std::string title;
@@ -309,6 +114,205 @@ public:
 };
 
 
+// Helper function for computing additional variable swaps that occur during shell sort
+void Shell_Helper(std::vector<BookEntry>& books, int iteration, int current){
+    if(current - iteration >= 0){
+        if(books[current].getRatingCount() > books[current - iteration].getRatingCount()){
+            BookEntry temp = books[current];
+            books[current] = books[current  - iteration];
+            books[current - iteration] = temp;
+            Shell_Helper(books, iteration, current - iteration);
+        }
+    }
+}
+
+
+// Shell sort algorithm for sorting books by rating in descending order
+void Shell_Sort(std::vector<BookEntry> &books){
+    int size = books.size();
+    int iteration = size / 2;
+    while(iteration > 0){
+        for(int i = 0; i < size; i++){
+            if(i + iteration < size){
+                if(books[i + iteration].getRatingCount() > books[i].getRatingCount()){
+                    BookEntry temp = books[i];
+                    books[i] = books[i + iteration];
+                    books[i + iteration] = temp;
+                    Shell_Helper(books, iteration, i);
+                }
+            }
+        }
+        iteration = iteration / 2;
+    }
+}
+
+
+// Helper function to perform the quick sort algorithm recursively
+// Sorts the book objects in descending order based on rating
+void Quick_Helper(std::vector<BookEntry>& Updated_books, std::vector<BookEntry> books){
+    int size = books.size();
+    std::vector<BookEntry> leftlist;
+    std::vector<BookEntry> rightlist;
+    BookEntry pivot = books[size - 1];
+    for (int i = 0; i < size - 1; i++){
+        if (books[i].getRatingCount() >= pivot.getRatingCount()){
+            leftlist.push_back(books[i]);
+        }
+        else if (books[i].getRatingCount() < pivot.getRatingCount()){
+            rightlist.push_back(books[i]);
+        }
+    }
+    if (leftlist.size() > 0){
+        Quick_Helper(Updated_books, leftlist);
+    }
+    Updated_books.push_back(pivot);
+    if (rightlist.size() > 0){
+      Quick_Helper(Updated_books, rightlist);
+    }
+}
+
+
+// Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
+std::vector<BookEntry> Quick_Sort(std::vector<BookEntry> books){
+    std::vector<BookEntry> Updated_books;
+    Quick_Helper(Updated_books, books);
+    return Updated_books;
+}
+
+
+
+// I used slides 90 from 6-Sorting as reference
+void merge(std::vector<BookEntry>& books, int left, int mid, int right){
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    std::vector<BookEntry> left_books;
+    std::vector<BookEntry> right_books;
+
+    for (int i = 0; i < n1; i++){
+        left_books.push_back(books[left + i]);
+    };
+    for (int j = 0; j < n2; j++){
+        right_books.push_back(books[mid + 1 + j]);
+    };
+
+    int i = 0;
+    int j = 0;
+    int k = left;
+    while(i < n1 && j < n2){
+        if (left_books[i].getRating() <= right_books[j].getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
+            books[k] = left_books[i];
+            i++;
+        }
+        else{
+            books[k] = right_books[j];
+            j++;
+        }
+        k++;
+    }
+    while(i < n1){
+        books[k] = left_books[i];
+        i++;
+        k++;
+    }
+    while(j < n2){
+        books[k] = right_books[j];
+        j++;
+        k++;
+    }
+}
+
+// I used slides 89 from 6-Sorting as reference
+void mergeSort(std::vector<BookEntry>& books, int left, int right){
+    if (left < right){
+        int mid = left + (right - left) /2;
+        mergeSort(books, left, mid);
+        mergeSort(books, mid+1, right);
+
+        merge(books, left, mid, right);
+    }
+}
+
+
+// helper functions
+void trim(std::string& str) {
+    str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));
+    str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
+}
+
+// csv file has format: author,bookformat,desc,genre,img,isbn,isbn13,link,pages,rating,reviews,title,totalratings
+auto parseCSVLine = [](const std::string& line) -> std::vector<std::string> {
+    std::vector<std::string> fields;
+    std::string field;
+    bool inQuotes = false;
+
+    for (size_t i = 0; i < line.length(); ++i) {
+        if (line[i] == '"') {
+            if (inQuotes && i + 1 < line.length() && line[i + 1] == '"') {
+                // Handle escaped quotes within a quoted field
+                field += '"';
+                ++i;
+            } else {
+                // Toggle the inQuotes state
+                inQuotes = !inQuotes;
+            }
+        } else if (line[i] == ',' && !inQuotes) {
+            // Comma outside quotes signifies a new field
+            fields.push_back(field);
+            field.clear();
+        } else {
+            // Regular character or comma inside quotes
+            field += line[i];
+        }
+    }
+    fields.push_back(field); // Add the last field
+
+    // Trim whitespace from each field
+    for (auto& f : fields) {
+        trim(f);
+    }
+
+    return fields;
+};
+
+auto safeStoi = [](const std::string& str, int defaultVal, auto trim) -> int {
+    try {
+        if (str.empty()) return defaultVal;
+        trim(const_cast<std::string&>(str));
+        return std::stoi(str);
+    } catch (...) {
+        return defaultVal;
+    }
+};
+
+auto safeStof = [](const std::string& str, float defaultVal, auto trim) -> float {
+    try {
+        if (str.empty()) return defaultVal;
+        trim(const_cast<std::string&>(str));
+        return std::stof(str);
+    } catch (...) {
+        return defaultVal;
+    }
+};
+
+auto splitString = [](const std::string& str) -> std::vector<std::string> {
+    std::vector<std::string> result;
+    std::istringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, ',')) {
+        trim(token);
+        result.push_back(token);
+    }
+    return result;
+};
+
+
+////////////////////////////////////////////////////////////////////
+// CLASS DEFINITIONS ///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+
+
+
 
 // Abstract base class
 class BookDatabase {
@@ -320,12 +324,9 @@ public:
     virtual ~BookDatabase() = default;
 
     // Abstract methods
-    virtual DataFrame findBooks(const DataFrame& query) = 0;
+    virtual std::map<std::string, std::vector<py::object>> findBooks(std::vector<BookEntry>& books) = 0;
     virtual bool loadDataFromDisk(const std::string& file_path, const int depth = -1) = 0;
     virtual std::map<std::string, std::vector<py::object>> filterBooks(const std::map<std::string, std::string>& filter, const bool exclusive = true) = 0;
-
-    virtual std::string testFunc(const std::string& input) = 0;
-    virtual std::string printBooks(const int depth) = 0;
 
 protected:
     std::string file_path_;
@@ -343,12 +344,10 @@ public:
         }
     }
 
-    DataFrame findBooks(const DataFrame& query) override {
+    std::map<std::string, std::vector<py::object>> findBooks(std::vector<BookEntry>& books) override {
         // Placeholder implementation
-        // Just returns a 2x2 matrix for testing
-        DataFrame result(2, 2);
-        result << 1.0, 2.0,
-                  3.0, 4.0;
+        // just returns empty map
+        std::map<std::string, std::vector<py::object>> result;
         return result;
     }
 
@@ -496,21 +495,6 @@ public:
 
     }
 
-    std::string testFunc(const std::string& input) override {
-        // Placeholder implementation
-        return "Test function called with input: " + input;
-    }
-
-    std::string printBooks(const int depth) override {
-        // Placeholder implementation
-        // Just print the first 'depth' books
-        std::string output = "";
-        for (int i = 0; i < depth; i++) {
-            output += "Genre: " + book_data_[i].getGenre() + ", Rating: " + std::to_string(book_data_[i].getRating()) + ", Title: " + book_data_[i].getTitle() + "\n";
-        }
-        return output;
-    }
-
 private:
     // declare a vector of BookEntry object
     // this will be used to store the data from the csv file
@@ -557,12 +541,10 @@ public:
         }
     }
 
-    DataFrame findBooks(const DataFrame& query) override {
+    std::map<std::string, std::vector<py::object>> findBooks(std::vector<BookEntry>& books) override {
         // Placeholder implementation
-        // Just returns a 2x2 matrix for testing
-        DataFrame result(2, 2);
-        result << 1.0, 2.0,
-                  3.0, 4.0;
+        // just returns empty map
+        std::map<std::string, std::vector<py::object>> result;
         return result;
     }
 
@@ -708,20 +690,6 @@ public:
 
     }
 
-    std::string testFunc(const std::string& input) override {
-        // Placeholder implementation
-        return "Test function called with input: " + input;
-    }
-
-    std::string printBooks(const int depth) override {
-        // Placeholder implementation
-        // Just print the first 'depth' books
-        std::string output = "";
-        for (int i = 0; i < depth; i++) {
-            output += "Genre: " + book_data_[i].getGenre() + ", Rating: " + std::to_string(book_data_[i].getRating()) + ", Title: " + book_data_[i].getTitle() + "\n";
-        }
-        return output;
-    }
 
 private:
     // declare a vector of BookEntry object
@@ -769,12 +737,10 @@ public:
         }
     }
 
-    DataFrame findBooks(const DataFrame& query) override {
+    std::map<std::string, std::vector<py::object>> findBooks(std::vector<BookEntry>& books) override {
         // Placeholder implementation
-        // Just returns a 2x2 matrix for testing
-        DataFrame result(2, 2);
-        result << 1.0, 2.0,
-                  3.0, 4.0;
+        // just returns empty map
+        std::map<std::string, std::vector<py::object>> result;
         return result;
     }
 
@@ -920,21 +886,6 @@ public:
 
     }
 
-    std::string testFunc(const std::string& input) override {
-        // Placeholder implementation
-        return "Test function called with input: " + input;
-    }
-
-    std::string printBooks(const int depth) override {
-        // Placeholder implementation
-        // Just print the first 'depth' books
-        std::string output = "";
-        for (int i = 0; i < depth; i++) {
-            output += "Genre: " + book_data_[i].getGenre() + ", Rating: " + std::to_string(book_data_[i].getRating()) + ", Title: " + book_data_[i].getTitle() + "\n";
-        }
-        return output;
-    }
-
 private:
     // declare a vector of BookEntry object
     // this will be used to store the data from the csv file
@@ -977,9 +928,7 @@ PYBIND11_MODULE(book_database_cpp, m) {
     // Bind the abstract base class
     py::class_<BookDatabase, std::shared_ptr<BookDatabase>>(m, "BookDatabase")
         .def("findBooks", &BookDatabase::findBooks)
-        .def("testFunc", &BookDatabase::testFunc)
         .def("loadDataFromDisk", &BookDatabase::loadDataFromDisk)
-        .def("printBooks", &BookDatabase::printBooks)
         .def("filterBooks", &BookDatabase::filterBooks);
 
     // Bind the concrete implementation
