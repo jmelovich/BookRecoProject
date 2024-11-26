@@ -9,23 +9,25 @@ import SortingAlgorithms as sr
 
 from src.ui_utils import (
     create_label, create_entry, create_button, 
-    create_option_menu, BookGridUI, load_genre_list,
-    genres_autocomplete_list, CustomAutocompleteEntry
+    create_option_menu, BookGridUI, load_genre_list, load_author_list, load_bookformat_list, load_titles_list,
+    genres_autocomplete_list, authors_autocomplete_list, bookformats_autocomplete_list, titles_autocomplete_list,
+    CustomAutocompleteEntry
 )
 
 
 import book_database_cpp
 
 
-
 class BookRecommendationApp:
     def __init__(self, root):
         self.root = root
         self.selected_genres = []
+        self.selected_authors = []
         self.sorted_books_df = None
         
         # Load the genre list for autocomplete
         load_genre_list()
+        load_author_list()
         
         self.setup_ui()
         
@@ -67,6 +69,24 @@ class BookRecommendationApp:
         
         create_button(self.input_frame, "+", self.add_genre, "Poppins", 3, 1, 0, 2)
 
+        # Author input with autocomplete
+        create_label(self.input_frame, "Author:", "Poppins", '#8c92ac', 2, 0)
+        self.author_entry = CustomAutocompleteEntry(
+            self.input_frame,
+            completevalues=authors_autocomplete_list,
+            add_callback=self.add_author,  # Pass the callback for Enter key
+            width=20,
+            font=('Poppins', 10),
+            bg='white',
+            fg='black'
+        )
+        self.author_entry.grid(row=2, column=1, padx=10, pady=5)
+
+        self.author_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
+        self.author_list_frame.grid(row=3, column=0, columnspan=2, sticky='w', padx=10, pady=5)
+
+        create_button(self.input_frame, "+", self.add_author, "Poppins", 3, 1, 2, 2)
+
         # Search terms
         create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 5, 0)
         self.search_terms_entry = create_entry(self.input_frame, 20, 5, 1)
@@ -87,10 +107,6 @@ class BookRecommendationApp:
         create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 9, 0)
         self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 9, 1)
 
-        # Author
-        # TODO: Add Autocomplete for authors; allow user to select one or multiple authors
-        create_label(self.input_frame, "Author(s):", "Poppins", '#8c92ac', 2, 0)
-        self.entry_author = create_entry(self.input_frame, 20, 2, 1)
 
         # Title
         # TODO: Add Autocomplete for Title; allow user to select title
@@ -128,6 +144,27 @@ class BookRecommendationApp:
             remove_button.pack(side='right')
 
             self.genre_entry.delete(0, 'end')
+
+    def add_author(self):
+        author = self.author_entry.get().strip()
+        if author:
+            author_frame = tk.Frame(self.author_list_frame, bg='#8c92ac', relief='solid', padx=5, pady=2)
+            author_frame.pack(side='top', fill='x', pady=2)
+
+            author_label = tk.Label(author_frame, text=author, bg='#8c92ac')
+            author_label.pack(side='left')
+
+            self.selected_authors.append(author)
+
+            def remove_author():
+                self.selected_authors.remove(author_label.cget('text'))
+                author_frame.destroy()
+
+            remove_button = tk.Button(author_frame, text='x', command=remove_author,
+                                      bg='red', fg='white', padx=5)
+            remove_button.pack(side='right')
+
+            self.author_entry.delete(0, 'end')
 
     def on_book_click(self, event, index):
         print(f"Clicked on row index: {index}")
