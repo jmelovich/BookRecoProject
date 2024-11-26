@@ -264,7 +264,7 @@ void Quick_Sort(std::vector<BookEntry*>& books, const std::string& sortBy = "rat
 
 
 // I used slides 90 from 6-Sorting as reference
-void merge(std::vector<BookEntry*>& books, int left, int mid, int right){
+void merge(std::vector<BookEntry*>& books, int left, int mid, int right, const std::string& sortBy = "rating"){
     int n1 = mid - left + 1;
     int n2 = right - mid;
     std::vector<BookEntry*> left_books;
@@ -281,13 +281,45 @@ void merge(std::vector<BookEntry*>& books, int left, int mid, int right){
     int j = 0;
     int k = left;
     while(i < n1 && j < n2){
-        if (left_books[i]->getRating() >= right_books[j]->getRating()){ // LUKE: I added getRating() here because you can't compare BookEntry objects directly
-            books[k] = left_books[i];
-            i++;
+        if (sortBy == "rating"){
+            if (left_books[i]->getRating() >= right_books[j]->getRating()){
+                books[k] = left_books[i];
+                i++;
+            }
+            else{
+                books[k] = right_books[j];
+                j++;
+            }
         }
-        else{
-            books[k] = right_books[j];
-            j++;
+        else if (sortBy == "title"){
+            if (left_books[i]->getTitle() >= right_books[j]->getTitle()){
+                books[k] = left_books[i];
+                i++;
+            }
+            else{
+                books[k] = right_books[j];
+                j++;
+            }
+        }
+        else if (sortBy == "num_pages"){
+            if (left_books[i]->getPageCount() >= right_books[j]->getPageCount()){
+                books[k] = left_books[i];
+                i++;
+            }
+            else{
+                books[k] = right_books[j];
+                j++;
+            }
+        }
+        else if (sortBy == "review_count"){
+            if (left_books[i]->getRatingCount() >= right_books[j]->getRatingCount()){
+                books[k] = left_books[i];
+                i++;
+            }
+            else{
+                books[k] = right_books[j];
+                j++;
+            }
         }
         k++;
     }
@@ -307,10 +339,10 @@ void merge(std::vector<BookEntry*>& books, int left, int mid, int right){
 void Merge_Sort(std::vector<BookEntry*>& books, int left, int right, const std::string& sortBy = "rating"){
     if (left < right){
         int mid = left + (right - left) /2;
-        Merge_Sort(books, left, mid);
-        Merge_Sort(books, mid+1, right);
+        Merge_Sort(books, left, mid, sortBy);
+        Merge_Sort(books, mid+1, right, sortBy);
 
-        merge(books, left, mid, right);
+        merge(books, left, mid, right, sortBy);
     }
 }
 

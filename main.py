@@ -249,8 +249,8 @@ class BookRecommendationApp:
             parameters["genre"] = ",".join(self.selected_genres)
         # get the author(s), title, and bookformat
         # author is a list, so needs to be revised first
-        parameters['titleFilter'] = self.entry_title.get()
-        parameters['bookFormat'] = self.entry_bookformat.get()
+        #parameters['titleFilter'] = self.entry_title.get()
+        #parameters['bookFormat'] = self.entry_bookformat.get()
         
         # get the sorting algorithm
         if self.sort_algorithm.get() == 'Shell Sort':
