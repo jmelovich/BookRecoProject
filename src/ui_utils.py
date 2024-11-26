@@ -31,7 +31,7 @@ def load_bookformat_list():
             bookformats_autocomplete_list.append(line.strip())
 
 
-def load_titles_list():
+def load_title_list():
     with open('data/unique_titles.txt', 'r', encoding='utf-8') as f:
         for line in f:
             # Strip any whitespace or newline characters and append to the list

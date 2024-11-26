@@ -9,7 +9,7 @@ import SortingAlgorithms as sr
 
 from src.ui_utils import (
     create_label, create_entry, create_button, 
-    create_option_menu, BookGridUI, load_genre_list, load_author_list, load_bookformat_list, load_titles_list,
+    create_option_menu, BookGridUI, load_genre_list, load_author_list, load_bookformat_list, load_title_list,
     genres_autocomplete_list, authors_autocomplete_list, bookformats_autocomplete_list, titles_autocomplete_list,
     CustomAutocompleteEntry
 )
@@ -23,11 +23,15 @@ class BookRecommendationApp:
         self.root = root
         self.selected_genres = []
         self.selected_authors = []
+        self.selected_titles = []
+        self.selected_bookformats = []
         self.sorted_books_df = None
         
         # Load the genre list for autocomplete
         load_genre_list()
         load_author_list()
+        load_title_list()
+        load_bookformat_list()
         
         self.setup_ui()
         
@@ -87,36 +91,61 @@ class BookRecommendationApp:
 
         create_button(self.input_frame, "+", self.add_author, "Poppins", 3, 1, 2, 2)
 
+        # Title input with autocomplete
+        create_label(self.input_frame, "Title:", "Poppins", '#8c92ac', 4, 0)
+        self.title_entry = CustomAutocompleteEntry(
+            self.input_frame,
+            completevalues=titles_autocomplete_list,
+            add_callback=self.add_title,  # Pass the callback for Enter key
+            width=20,
+            font=('Poppins', 10),
+            bg='white',
+            fg='black'
+        )
+        self.title_entry.grid(row=4, column=1, padx=10, pady=5)
+
+        self.title_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
+        self.title_list_frame.grid(row=5, column=0, columnspan=2, sticky='w', padx=10, pady=5)
+
+        create_button(self.input_frame, "+", self.add_title, "Poppins", 3, 1, 4, 2)
+
+        # Book Format input with autocomplete
+        create_label(self.input_frame, "Book Format:", "Poppins", '#8c92ac', 6, 0)
+        self.bookformat_entry = CustomAutocompleteEntry(
+            self.input_frame,
+            completevalues=bookformats_autocomplete_list,
+            add_callback=self.add_bookformat,  # Pass the callback for Enter key
+            width=20,
+            font=('Poppins', 10),
+            bg='white',
+            fg='black'
+        )
+        self.bookformat_entry.grid(row=6, column=1, padx=10, pady=5)
+
+        self.bookformat_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
+        self.bookformat_list_frame.grid(row=7, column=0, columnspan=2, sticky='w', padx=10, pady=5)
+
+        create_button(self.input_frame, "+", self.add_bookformat, "Poppins", 3, 1, 6, 2)
+
         # Search terms
-        create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 5, 0)
-        self.search_terms_entry = create_entry(self.input_frame, 20, 5, 1)
+        create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 8, 0)
+        self.search_terms_entry = create_entry(self.input_frame, 20, 8, 1)
 
         # Find books button
-        create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 6, 1)
+        create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 9, 1)
 
         # Sorting options
         algorithms = ["Merge Sort", "Shell Sort", "Quick Sort"]
-        create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 7, 0)
-        self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 7, 1)
+        create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 10, 0)
+        self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 10, 1)
 
         sorting_var = ["Rating", "Review Count", "Page number", "Alphabetical"]
-        create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 8, 0)
-        self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 8, 1)
+        create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 11, 0)
+        self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 11, 1)
 
         sorting_order = ["Descending", "Ascending"]
-        create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 9, 0)
-        self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 9, 1)
-
-
-        # Title
-        # TODO: Add Autocomplete for Title; allow user to select title
-        create_label(self.input_frame, "Title:", "Poppins", '#8c92ac', 3, 0)
-        self.entry_title = create_entry(self.input_frame, 20, 3, 1)
-
-        # Bookformat
-        # TODO: Add Autocomplete for Bookformat; allow user to select bookformat
-        create_label(self.input_frame, "Bookformat:", "Poppins", '#8c92ac', 4, 0)
-        self.entry_bookformat = create_entry(self.input_frame, 20, 4, 1)
+        create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 12, 0)
+        self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 12, 1)
 
         # Page Count
         # TODO: Add page count option for people to select
@@ -165,6 +194,48 @@ class BookRecommendationApp:
             remove_button.pack(side='right')
 
             self.author_entry.delete(0, 'end')
+
+    def add_title(self):
+        title = self.title_entry.get().strip()
+        if title:
+            title_frame = tk.Frame(self.title_list_frame, bg='#8c92ac', relief='solid', padx=5, pady=2)
+            title_frame.pack(side='top', fill='x', pady=2)
+
+            title_label = tk.Label(title_frame, text=title, bg='#8c92ac')
+            title_label.pack(side='left')
+
+            self.selected_titles.append(title)
+
+            def remove_title():
+                self.selected_titles.remove(title_label.cget('text'))
+                title_frame.destroy()
+
+            remove_button = tk.Button(title_frame, text='x', command=remove_title,
+                                      bg='red', fg='white', padx=5)
+            remove_button.pack(side='right')
+
+            self.title_entry.delete(0, 'end')
+
+    def add_bookformat(self):
+        bookformat = self.bookformat_entry.get().strip()
+        if bookformat:
+            bookformat_frame = tk.Frame(self.bookformat_list_frame, bg='#8c92ac', relief='solid', padx=5, pady=2)
+            bookformat_frame.pack(side='top', fill='x', pady=2)
+
+            bookformat_label = tk.Label(bookformat_frame, text=bookformat, bg='#8c92ac')
+            bookformat_label.pack(side='left')
+
+            self.selected_bookformats.append(bookformat)
+
+            def remove_bookformat():
+                self.selected_bookformats.remove(bookformat_label.cget('text'))
+                bookformat_frame.destroy()
+
+            remove_button = tk.Button(bookformat_frame, text='x', command=remove_bookformat,
+                                      bg='red', fg='white', padx=5)
+            remove_button.pack(side='right')
+
+            self.bookformat_entry.delete(0, 'end')
 
     def on_book_click(self, event, index):
         print(f"Clicked on row index: {index}")
