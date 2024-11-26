@@ -80,12 +80,14 @@ def loadImageFromURL(url, root):
 
 
 # Function to desplay information as users hover their mouse over book images
-def on_hover(event, title, author, rating):
+def on_hover(event, title, author, rating, page_num, rating_count):
     event.widget.config(relief="raised", bd=0)
     tooltip = tk.Toplevel(event.widget)
     tooltip.wm_overrideredirect(True)
     tooltip.wm_geometry(f"+{event.widget.winfo_rootx()}+{event.widget.winfo_rooty()}")
-    label = tk.Label(tooltip, text=f"{title}\n{author}\nRating: {rating}", background="yellow", relief="solid", borderwidth=1)
+    label = tk.Label(tooltip, text=f"{title}\n{author}\nPage_Number: {page_num}\n"
+                                   f"Reviews: {rating_count}\nRating: {rating}",
+                     background="yellow", relief="solid", borderwidth=1)
     label.pack()
     event.widget.tooltip = tooltip
 
@@ -182,8 +184,10 @@ class BookGridUI:
                       padx=5, pady=5, sticky="nsew")
             label.bind("<Enter>", 
                 lambda event, title=row['title'], 
-                author=row['author'], 
-                rating=row['rating']: on_hover(event, title, author, rating))
+                author=row['author'],
+                page_num = row['page_count'],
+                rating_num = row['rating_count'],
+                rating=row['rating']: on_hover(event, title, author, rating, page_num, rating_num))
             label.bind("<Leave>", on_leave)
             label.bind("<Button-1>", 
                 lambda event, idx=index: on_click_callback(event, idx))
