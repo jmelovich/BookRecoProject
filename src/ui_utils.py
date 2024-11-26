@@ -4,6 +4,10 @@ import requests
 from io import BytesIO
 
 genres_autocomplete_list = []
+authors_autocomplete_list = []
+bookformats_autocomplete_list = []
+titles_autocomplete_list = []
+
 
 def load_genre_list():
     # Open the file and read each line into the list
@@ -12,11 +16,34 @@ def load_genre_list():
             # Strip any whitespace or newline characters and append to the list
             genres_autocomplete_list.append(line.strip())
 
+
+def load_author_list():
+    with open('data/unique_authors.txt', 'r', encoding='utf-8') as f:
+        for line in f:
+            # Strip any whitespace or newline characters and append to the list
+            authors_autocomplete_list.append(line.strip())
+
+
+def load_bookformat_list():
+    with open('data/unique_bookformats.txt', 'r', encoding='utf-8') as f:
+        for line in f:
+            # Strip any whitespace or newline characters and append to the list
+            bookformats_autocomplete_list.append(line.strip())
+
+
+def load_titles_list():
+    with open('data/unique_titles.txt', 'r', encoding='utf-8') as f:
+        for line in f:
+            # Strip any whitespace or newline characters and append to the list
+            titles_autocomplete_list.append(line.strip())
+
+
 # Function for creating and displaying text on the program's window
 def create_label(parent, text, font, background, row, column):
     label = tk.Label(parent, text=text, font=font, background=background)
     label.grid(row=row, column=column, sticky='w', padx=10, pady=5)
     return label
+
 
 # Function for creating functional text boxes to store user inputs
 def create_entry(parent, width, row, column):
@@ -24,11 +51,13 @@ def create_entry(parent, width, row, column):
     entry.grid(row=row, column=column, padx=10, pady=5)
     return entry
 
+
 # Function for creating button that activate additional functions when pressed
 def create_button(parent, text, command, font, width, height, row, column):
     button = tk.Button(parent, text=text, command=command, font=font, width=width, height=height)
     button.grid(row=row, column=column, padx=10, pady=5)
     return button
+
 
 # Function for creating drop down menus to store different program operations
 def create_option_menu(parent, options, default, row, column):
@@ -37,6 +66,7 @@ def create_option_menu(parent, options, default, row, column):
     option_menu = tk.OptionMenu(parent, var, *options)
     option_menu.grid(row=row, column=column, padx=10, pady=5)
     return var
+
 
 # Function that takes in an image url and returns a colored image that can be displayed on the UI.
 def loadImageFromURL(url, root):
@@ -48,6 +78,7 @@ def loadImageFromURL(url, root):
     image = Image.open(BytesIO(response.content))
     return ImageTk.PhotoImage(image, master=root)
 
+
 # Function to desplay information as users hover their mouse over book images
 def on_hover(event, title, author, rating):
     event.widget.config(relief="raised", bd=0)
@@ -58,12 +89,14 @@ def on_hover(event, title, author, rating):
     label.pack()
     event.widget.tooltip = tooltip
 
+
 # Function to handle when users try to escape from the program
 def on_leave(event):
     event.widget.config(relief="flat", bd=0)
     if hasattr(event.widget, 'tooltip'):
         event.widget.tooltip.destroy()
         del event.widget.tooltip
+
 
 # Class for storing all elements used to develop the front end UI
 class BookGridUI:
