@@ -176,10 +176,10 @@ void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*
 
 
 // Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
-std::vector<BookEntry*> Quick_Sort(std::vector<BookEntry*>& books, const std::string& sortBy = "rating"){
+void Quick_Sort(std::vector<BookEntry*>& books, const std::string& sortBy = "rating"){
     std::vector<BookEntry*> Updated_books;
     Quick_Helper(Updated_books, books);
-    return Updated_books;
+    books = Updated_books;
 }
 
 
