@@ -123,7 +123,7 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current, co
                 BookEntry* temp = books[current];
                 books[current] = books[current  - iteration];
                 books[current - iteration] = temp;
-                Shell_Helper(books, iteration, current - iteration);
+                Shell_Helper(books, iteration, current - iteration, sortBy);
             }
         }
     }
@@ -133,7 +133,7 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current, co
                 BookEntry* temp = books[current];
                 books[current] = books[current  - iteration];
                 books[current - iteration] = temp;
-                Shell_Helper(books, iteration, current - iteration);
+                Shell_Helper(books, iteration, current - iteration, sortBy);
             }
         }
     }
@@ -143,7 +143,7 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current, co
                 BookEntry* temp = books[current];
                 books[current] = books[current  - iteration];
                 books[current - iteration] = temp;
-                Shell_Helper(books, iteration, current - iteration);
+                Shell_Helper(books, iteration, current - iteration, sortBy);
             }
         }
     }
@@ -153,7 +153,7 @@ void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current, co
                 BookEntry* temp = books[current];
                 books[current] = books[current  - iteration];
                 books[current - iteration] = temp;
-                Shell_Helper(books, iteration, current - iteration);
+                Shell_Helper(books, iteration, current - iteration, sortBy);
             }
         }
     }
