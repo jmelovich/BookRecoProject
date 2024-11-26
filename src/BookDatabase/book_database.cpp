@@ -116,13 +116,45 @@ public:
 
 
 // Helper function for computing additional variable swaps that occur during shell sort
-void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current){
-    if(current - iteration >= 0){
-        if(books[current]->getRating() > books[current - iteration]->getRating()){
-            BookEntry* temp = books[current];
-            books[current] = books[current  - iteration];
-            books[current - iteration] = temp;
-            Shell_Helper(books, iteration, current - iteration);
+void Shell_Helper(std::vector<BookEntry*>& books, int iteration, int current, const std::string& sortBy = "rating"){
+    if(sortBy == "rating"){
+        if(current - iteration >= 0){
+            if(books[current]->getRating() > books[current - iteration]->getRating()){
+                BookEntry* temp = books[current];
+                books[current] = books[current  - iteration];
+                books[current - iteration] = temp;
+                Shell_Helper(books, iteration, current - iteration);
+            }
+        }
+    }
+    else if(sortBy == "title"){
+        if(current - iteration >= 0){
+            if(books[current]->getTitle() > books[current - iteration]->getTitle()){
+                BookEntry* temp = books[current];
+                books[current] = books[current  - iteration];
+                books[current - iteration] = temp;
+                Shell_Helper(books, iteration, current - iteration);
+            }
+        }
+    }
+    else if(sortBy == "num_pages"){
+        if(current - iteration >= 0){
+            if(books[current]->getPageCount() > books[current - iteration]->getPageCount()){
+                BookEntry* temp = books[current];
+                books[current] = books[current  - iteration];
+                books[current - iteration] = temp;
+                Shell_Helper(books, iteration, current - iteration);
+            }
+        }
+    }
+    else if(sortBy == "review_count"){
+        if(current - iteration >= 0){
+            if(books[current]->getRatingCount() > books[current - iteration]->getRatingCount()){
+                BookEntry* temp = books[current];
+                books[current] = books[current  - iteration];
+                books[current - iteration] = temp;
+                Shell_Helper(books, iteration, current - iteration);
+            }
         }
     }
 }
@@ -134,18 +166,65 @@ void Shell_Sort(std::vector<BookEntry*> &books, const std::string& sortBy = "rat
     // "rating", "review_count", "num_pages", "title"
     int size = books.size();
     int iteration = size / 2;
-    while(iteration > 0){
-        for(int i = 0; i < size; i++){
-            if(i + iteration < size){
-                if(books[i + iteration]->getRating() > books[i]->getRating()){
-                    BookEntry* temp = books[i];
-                    books[i] = books[i + iteration];
-                    books[i + iteration] = temp;
-                    Shell_Helper(books, iteration, i);
+    if(sortBy == "rating"){
+        while(iteration > 0){
+            for(int i = 0; i < size; i++){
+                if(i + iteration < size){
+                    if(books[i + iteration]->getRating() > books[i]->getRating()){
+                        BookEntry* temp = books[i];
+                        books[i] = books[i + iteration];
+                        books[i + iteration] = temp;
+                        Shell_Helper(books, iteration, i, sortBy);
+                    }
                 }
             }
+            iteration = iteration / 2;
         }
-        iteration = iteration / 2;
+    }
+    else if(sortBy == "title"){
+        while(iteration > 0){
+            for(int i = 0; i < size; i++){
+                if(i + iteration < size){
+                    if(books[i + iteration]->getTitle() > books[i]->getTitle()){
+                        BookEntry* temp = books[i];
+                        books[i] = books[i + iteration];
+                        books[i + iteration] = temp;
+                        Shell_Helper(books, iteration, i, sortBy);
+                    }
+                }
+            }
+            iteration = iteration / 2;
+        }
+    }
+    else if(sortBy == "num_pages"){
+        while(iteration > 0){
+            for(int i = 0; i < size; i++){
+                if(i + iteration < size){
+                    if(books[i + iteration]->getPageCount() > books[i]->getPageCount()){
+                        BookEntry* temp = books[i];
+                        books[i] = books[i + iteration];
+                        books[i + iteration] = temp;
+                        Shell_Helper(books, iteration, i, sortBy);
+                    }
+                }
+            }
+            iteration = iteration / 2;
+        }
+    }
+    else if(sortBy == "review_count"){
+        while(iteration > 0){
+            for(int i = 0; i < size; i++){
+                if(i + iteration < size){
+                    if(books[i + iteration]->getRatingCount() > books[i]->getRatingCount()){
+                        BookEntry* temp = books[i];
+                        books[i] = books[i + iteration];
+                        books[i + iteration] = temp;
+                        Shell_Helper(books, iteration, i, sortBy);
+                    }
+                }
+            }
+            iteration = iteration / 2;
+        }
     }
 }
 
