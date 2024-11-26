@@ -158,10 +158,10 @@ void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*
     std::vector<BookEntry*> rightlist;
     BookEntry* pivot = books[size - 1];
     for (int i = 0; i < size - 1; i++){
-        if (books[i]->getRating() >= pivot->getRating()){
+        if (books[i]->getRating() >= pivot->getRating()){ // Flipped the sign to fix the "Descending" order
             leftlist.push_back(books[i]);
         }
-        else if (books[i]->getRating() < pivot->getRating()){
+        else if (books[i]->getRating() < pivot->getRating()){ // Flipped the sign to fix the "Descending" order
             rightlist.push_back(books[i]);
         }
     }
