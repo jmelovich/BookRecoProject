@@ -231,25 +231,57 @@ void Shell_Sort(std::vector<BookEntry*> &books, const std::string& sortBy = "rat
 
 // Helper function to perform the quick sort algorithm recursively
 // Sorts the book objects in descending order based on rating
-void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*>& books){
+void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*>& books, const std::string& sortBy = "rating"){
     int size = books.size();
     std::vector<BookEntry*> leftlist;
     std::vector<BookEntry*> rightlist;
     BookEntry* pivot = books[size - 1];
-    for (int i = 0; i < size - 1; i++){
-        if (books[i]->getRating() >= pivot->getRating()){ // Flipped the sign to fix the "Descending" order
-            leftlist.push_back(books[i]);
+    if (sortBy == "rating"){
+        for (int i = 0; i < size - 1; i++){
+            if (books[i]->getRating() >= pivot->getRating()){ // Flipped the sign to fix the "Descending" order
+                leftlist.push_back(books[i]);
+            }
+            else if (books[i]->getRating() < pivot->getRating()){ // Flipped the sign to fix the "Descending" order
+                rightlist.push_back(books[i]);
+            }
         }
-        else if (books[i]->getRating() < pivot->getRating()){ // Flipped the sign to fix the "Descending" order
-            rightlist.push_back(books[i]);
+    }
+    else if (sortBy == "title"){
+        for (int i = 0; i < size - 1; i++){
+            if (books[i]->getTitle() >= pivot->getTitle()){ // Flipped the sign to fix the "Descending" order
+                leftlist.push_back(books[i]);
+            }
+            else if (books[i]->getTitle() < pivot->getTitle()){ // Flipped the sign to fix the "Descending" order
+                rightlist.push_back(books[i]);
+            }
+        }
+    }
+    else if (sortBy == "num_pages"){
+        for (int i = 0; i < size - 1; i++){
+            if (books[i]->getPageCount() >= pivot->getPageCount()){ // Flipped the sign to fix the "Descending" order
+                leftlist.push_back(books[i]);
+            }
+            else if (books[i]->getPageCount() < pivot->getPageCount()){ // Flipped the sign to fix the "Descending" order
+                rightlist.push_back(books[i]);
+            }
+        }
+    }
+     else if (sortBy == "review_count"){
+        for (int i = 0; i < size - 1; i++){
+            if (books[i]->getRatingCount() >= pivot->getRatingCount()){ // Flipped the sign to fix the "Descending" order
+                leftlist.push_back(books[i]);
+            }
+            else if (books[i]->getRatingCount() < pivot->getRatingCount()){ // Flipped the sign to fix the "Descending" order
+                rightlist.push_back(books[i]);
+            }
         }
     }
     if (leftlist.size() > 0){
-        Quick_Helper(Updated_books, leftlist);
+        Quick_Helper(Updated_books, leftlist, sortBy);
     }
     Updated_books.push_back(pivot);
     if (rightlist.size() > 0){
-      Quick_Helper(Updated_books, rightlist);
+      Quick_Helper(Updated_books, rightlist, sortBy);
     }
 }
 
@@ -257,7 +289,7 @@ void Quick_Helper(std::vector<BookEntry*>& Updated_books, std::vector<BookEntry*
 // Quick Sort function that returns a new vector of class objects sorted by rating in decending order.
 void Quick_Sort(std::vector<BookEntry*>& books, const std::string& sortBy = "rating"){
     std::vector<BookEntry*> Updated_books;
-    Quick_Helper(Updated_books, books);
+    Quick_Helper(Updated_books, books, sortBy);
     books = Updated_books;
 }
 
