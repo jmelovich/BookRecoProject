@@ -6,6 +6,7 @@ from ttkwidgets.autocomplete import AutocompleteEntry
 import kagglehub
 import time
 import SortingAlgorithms as sr
+from tkinter import BooleanVar, Checkbutton
 
 from src.ui_utils import (
     create_label, create_entry, create_button, 
@@ -134,12 +135,24 @@ class BookRecommendationApp:
         # Find books button
         create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 9, 1)
 
+        # Disable Cover Art checkbox
+        self.disable_cover_art_var = BooleanVar()
+        self.disable_cover_art_checkbox = Checkbutton(
+            self.input_frame, 
+            text="Disable Cover Art?", 
+            variable=self.disable_cover_art_var, 
+            bg='#3C5291', 
+            fg='white', 
+            selectcolor='#3C5291'
+        )
+        self.disable_cover_art_checkbox.grid(row=9, column=2, padx=10, pady=5)
+
         # Sorting options
         algorithms = ["Merge Sort", "Shell Sort", "Quick Sort"]
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 10, 0)
         self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 10, 1)
 
-        sorting_var = ["Rating", "Review Count", "Page number", "Alphabetical"]
+        sorting_var = ["Rating", "Review Count", "Page Count", "Alphabetical"]
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 11, 0)
         self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 11, 1)
 
@@ -285,7 +298,13 @@ class BookRecommendationApp:
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"FilterBooks completed in {elapsed_time:.2f} seconds")
-        self.book_grid.populate_grid(self.sorted_books_df, self.on_book_click)
+        
+        # Populate the book grid, and disable cover art if the checkbox is checked
+        disable_cover_art_status = self.disable_cover_art_var.get()
+        print(f"Disable Cover Art? {'Checked' if disable_cover_art_status else 'Unchecked'}")
+        self.book_grid.populate_grid(self.sorted_books_df, self.on_book_click, not disable_cover_art_status)
+
+
 
 def load_data(file_path):
     if not isinstance(file_path, str):

@@ -85,7 +85,7 @@ def on_hover(event, title, author, rating, page_num, rating_count):
     tooltip = tk.Toplevel(event.widget)
     tooltip.wm_overrideredirect(True)
     tooltip.wm_geometry(f"+{event.widget.winfo_rootx()}+{event.widget.winfo_rooty()}")
-    label = tk.Label(tooltip, text=f"{title}\n{author}\nPage_Number: {page_num}\n"
+    label = tk.Label(tooltip, text=f"{title}\n{author}\nPage Count: {page_num}\n"
                                    f"Reviews: {rating_count}\nRating: {rating}",
                      background="yellow", relief="solid", borderwidth=1)
     label.pack()
@@ -145,12 +145,15 @@ class BookGridUI:
                        padx=5, pady=5, sticky="nsew")
 
     # Function to add and update elements displayed on the window's grid
-    def populate_grid(self, dataframe, on_click_callback):
+    def populate_grid(self, dataframe, on_click_callback, show_images=True):
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
             
         for index, row in dataframe.iterrows():
-            image = loadImageFromURL(row['img'], self.root)
+            if show_images:
+                image = loadImageFromURL(row['img'], self.root)
+            else:
+                image = None
             if image is not None:
                 image = image._PhotoImage__photo.subsample(
                     max(1, int(image.height() // self.img_height)))
