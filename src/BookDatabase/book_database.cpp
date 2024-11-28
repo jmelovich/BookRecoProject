@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_set>
+#include <iomanip>
 
 namespace py = pybind11;
 
@@ -82,16 +83,6 @@ public:
     void setEmbedding(const std::vector<float>& embedding) { this->embedding = embedding; }
 
     bool calculateEmbedding(py::object python_function_) {
-        // TODO: Implement actual embedding calculation
-        // This can be done one of two ways:
-        // 1. Calculate the embedding using a local model
-        //    -- This would probably be easier to program in python and then call from C++
-        // 2. Call a remote service to calculate the embedding
-        //    -- This would require making an HTTP request to the OpenAI endpoint
-        //    -- This is probably the better option, as I can run a local inference server anyway
-
-        // I will implement the second option for now
-
         // First concatenate the title and description
         std::string text = title + " :\n" + description;
 
@@ -451,6 +442,61 @@ auto splitString = [](const std::string& str) -> std::vector<std::string> {
     return result;
 };
 
+// Function that takes in a vector of vectors of floats and writes them to a file
+void writeEmbeddingsToFile(const std::vector<std::vector<float>>& embeddings, const std::string& file_path) {
+    std::ofstream outfile(file_path);
+    if (!outfile.is_open()) {
+        std::cerr << "Failed to open file for writing" << std::endl;
+        return;
+    }
+
+    // Set precision for floating-point numbers
+    outfile << std::fixed << std::setprecision(10);
+
+    for (const auto& emb : embeddings) {
+        for (size_t i = 0; i < emb.size(); ++i) {
+            outfile << emb[i];
+            if (i < emb.size() - 1) {
+                outfile << ",";
+            }
+        }
+        outfile << std::endl;
+    }
+
+    // Explicitly close the file
+    outfile.close();
+}
+
+// Function that reads embeddings from a file and returns a vector of vectors of floats
+std::vector<std::vector<float>> readEmbeddingsFromFile(const std::string& file_path) {
+    std::vector<std::vector<float>> embeddings;
+    std::ifstream infile(file_path);
+    if (!infile.is_open()) {
+        std::cerr << "Failed to open file for reading" << std::endl;
+        return embeddings;
+    }
+
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::vector<float> emb;
+        std::istringstream ss(line);
+        std::string token;
+        while (std::getline(ss, token, ',')) {
+            try {
+                emb.push_back(std::stof(token));
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "Invalid float format: " << token << std::endl;
+            }
+        }
+        embeddings.push_back(emb);
+    }
+
+    // Explicitly close the file
+    infile.close();
+
+    return embeddings;
+}
+
 
 ////////////////////////////////////////////////////////////////////
 // CLASS DEFINITIONS ///////////////////////////////////////////////
@@ -474,6 +520,9 @@ public:
     virtual bool loadDataFromDisk(const std::string& file_path, const int depth = -1) = 0;
     virtual std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& parameters, const bool exclusive = true) = 0;
 
+    virtual bool getEmbeddings(const std::string &file_path)  = 0; // this function should attempt to load the embeddings from a file, if not it should generate them
+    virtual void vectorSearch(const std::string& query, std::vector<BookEntry*> &books_input) = 0; // this function should return books sorted based on the cosine similarity of the query vector with the book embeddings
+
 protected:
     std::string file_path_;
     py::object python_function_;
@@ -486,6 +535,121 @@ public:
         if (!loadedData) {
             throw std::runtime_error("Failed to load data from disk");
         }
+        // get the embeddings path from the file_path
+        // the embeddings path should be the file_path with the file extension removed and "_embeddings.csv" appended
+        embeddingsPath = file_path.substr(0, file_path.find_last_of('.')) + "_embeddings.csv";
+    }
+
+    void vectorSearch(const std::string& query, std::vector<BookEntry*>& books_input) override {
+
+        // load the embeddings
+        getEmbeddings(embeddingsPath);
+
+        // Calculate the embedding for the query
+        py::object embedding = python_function_(query);
+        std::vector<float> embedding_vector = embedding.cast<std::vector<float>>();
+
+        // Check if valid
+        if (embedding_vector.empty()) {
+            std::cout << "Invalid embedding for query" << std::endl;
+            return; // Early exit if embedding is invalid
+        }
+
+        std::cout << "Calculated embedding for query: " << query << std::endl;
+
+        // Calculate cosine similarity and store in a vector of pairs
+        std::vector<std::pair<float, int>> similarity_scores;
+        for (size_t i = 0; i < books_input.size(); ++i) {
+            const auto& book_embedding = books_input[i]->getEmbedding();
+
+            // Calculate dot product and magnitudes
+            float dot_product = 0, query_magnitude = 0, book_magnitude = 0;
+            for (size_t j = 0; j < embedding_vector.size(); ++j) {
+                dot_product += embedding_vector[j] * book_embedding[j];
+                query_magnitude += embedding_vector[j] * embedding_vector[j];
+                book_magnitude += book_embedding[j] * book_embedding[j];
+            }
+            
+            query_magnitude = std::sqrt(query_magnitude);
+            book_magnitude = std::sqrt(book_magnitude);
+
+            // Calculate cosine similarity
+            float cosine_similarity = dot_product / (query_magnitude * book_magnitude);
+            similarity_scores.emplace_back(cosine_similarity, i);
+        }
+
+        // Sort by cosine similarity in descending order
+        std::sort(similarity_scores.begin(), similarity_scores.end(), std::greater<>());
+
+        // Create a sorted vector of BookEntry pointers
+        std::vector<BookEntry*> top_books;
+        for (const auto& score : similarity_scores) {
+            top_books.push_back(books_input[score.second]);
+        }
+
+        // Update the input vector with the sorted books
+        books_input = std::move(top_books);
+    }
+
+
+    bool getEmbeddings(const std::string &file_path) override {
+        // check if the file exists at file_path
+        // if it does, load the embeddings from the file
+        // if it doesn't, calculate the embeddings for each book and save them to the file
+        // return true if successful, false otherwise
+
+        if(embeddingsLoaded){
+            std::cout << "Embeddings already loaded" << std::endl;
+            return true;
+        }else{
+            std::cout << "Embeddings not already loaded, attempting to load from file" << std::endl;
+        }
+
+        if(file_path.empty()){
+            std::cerr << "No file path provided" << std::endl;
+            return false;
+        }
+
+        std::ifstream infile(file_path);
+        if (infile.good()) {
+            // file exists
+            std::cout << "File exists" << std::endl;
+            std::vector<std::vector<float>> embeddings = readEmbeddingsFromFile(file_path);
+            // check if the number of embeddings matches the number of books
+            if(embeddings.size() != book_data_.size()){
+                std::cerr << "Number of embeddings doesn't match number of books" << std::endl;
+                return false;
+            }
+            // set the embeddings for each book
+            for (int i = 0; i < book_data_.size(); i++) {
+                book_data_[i].setEmbedding(embeddings[i]);
+            }
+            std::cout << "Embeddings loaded from file" << std::endl;
+            embeddingsLoaded = true;
+            return true;
+        }else{
+            // file doesn't exist, so we will calculate the embeddings for each book
+            // and save them to the file
+            std::cout << "File doesn't exist, generating embeddings..." << std::endl;
+            // create a variable to store the embeddings, this will be written to the file once all embeddings are calculated
+            std::vector<std::vector<float>> embeddings;
+            for (int i = 0; i < book_data_.size(); i++) {
+                if (!book_data_[i].calculateEmbedding(python_function_)) {
+                    std::cerr << "Failed to calculate embedding for book " << i << std::endl;
+                    return false;
+                }else{
+                    std::cout << "Embedding calculated for book " << i << std::endl;
+                    embeddings.push_back(book_data_[i].getEmbedding());
+                }
+            }
+            // write the embeddings to the file
+            writeEmbeddingsToFile(embeddings, file_path);
+            std::cout << "Embeddings written to file" << std::endl;
+            embeddingsLoaded = true;
+            return true;
+        }
+
+
     }
 
     std::map<std::string, std::vector<py::object>> findBooks(const std::map<std::string, std::string>& parameters) override {
@@ -589,10 +753,25 @@ public:
         std::unordered_set<BookEntry*> unique_books;
         std::vector<std::string> genres;
 
+        bool isFiltered = false;
+
         for (const auto& [key, value] : parameters) {
             if (key == "genre") {
                 genres = splitString(value);
+                if(!genres.empty()){
+                    isFiltered = true;
+                }
             }
+        }
+
+        if (!isFiltered) {
+            // if no filters are applied, return all books
+            // create a vector of pointers to the book entries
+            std::vector<BookEntry*> books;
+            for (auto& entry : book_data_) {
+                books.push_back(&entry);
+            }
+            return books;
         }
 
         if (exclusive) {
@@ -629,6 +808,7 @@ public:
     void sortBooks(std::vector<BookEntry*>& filtered_books, const std::map<std::string, std::string>& parameters){
         std::string sortMethod = "quick";
         std::string sortBy = "rating";
+        std::string vector_query = "";
         bool ascending = false;
         for (const auto& [key, value] : parameters) {
             if (key == "sortMethod") {
@@ -640,8 +820,18 @@ public:
             if (key == "sortBy") {
                 sortBy = value;
             }
+            if (key == "search_terms") {
+                vector_query = value;
+            }
         }
-        if(sortMethod == "quick"){
+
+        if(sortBy == "vector_search"){
+            if(vector_query.empty()){
+                std::cerr << "No query provided for vector search" << std::endl;
+                return;
+            }
+            vectorSearch(vector_query, filtered_books);
+        }else if(sortMethod == "quick"){
             Quick_Sort(filtered_books, sortBy); // doesn't seem to work at the moment
         }else if(sortMethod == "shell"){
             Shell_Sort(filtered_books, sortBy);
@@ -667,6 +857,9 @@ private:
     // we will also declare a map of strings (genre) to vectors of integers (indices in the book_data_ list)
     // there can be multiple genres per book, so there can be multiple entries in the map for a single book
     std::map<std::string, std::vector<BookEntry*>> genre_book_map;
+
+    bool embeddingsLoaded = false; // will be flipped to true once the embeddings are loaded
+    std::string embeddingsPath = "embeddings.csv"; // default path for the embeddings file
 
     std::map<std::string, std::vector<py::object>> convertToDataFrame(const std::vector<BookEntry*>& book_entries) {
         std::map<std::string, std::vector<py::object>> data;
@@ -700,7 +893,9 @@ PYBIND11_MODULE(book_database_cpp, m) {
     py::class_<BookDatabase, std::shared_ptr<BookDatabase>>(m, "BookDatabase")
         .def("findBooks", &BookDatabase::findBooks)
         .def("loadDataFromDisk", &BookDatabase::loadDataFromDisk)
-        .def("filterBooks", &BookDatabase::filterBooks);
+        .def("filterBooks", &BookDatabase::filterBooks)
+        .def("getEmbeddings", &BookDatabase::getEmbeddings)
+        .def("vectorSearch", &BookDatabase::vectorSearch);
 
     // Bind the concrete implementation
     py::class_<BookDatabase_Type0, BookDatabase, std::shared_ptr<BookDatabase_Type0>>(m, "BookDatabase_Type0")

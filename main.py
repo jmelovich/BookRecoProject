@@ -152,7 +152,7 @@ class BookRecommendationApp:
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 10, 0)
         self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 10, 1)
 
-        sorting_var = ["Rating", "Review Count", "Page Count", "Alphabetical"]
+        sorting_var = ["Rating", "Review Count", "Page Count", "Alphabetical", "Search Relevance"]
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 11, 0)
         self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 11, 1)
 
@@ -286,6 +286,11 @@ class BookRecommendationApp:
             parameters["sortBy"] = 'num_pages'
         elif self.sort_by.get() == 'Alphabetical':
             parameters["sortBy"] = 'title'
+        elif self.sort_by.get() == 'Search Relevance':
+            parameters["sortBy"] = 'vector_search'
+        
+        # get the search terms
+        parameters["search_terms"] = self.search_terms_entry.get().strip()
         
         return parameters
 
@@ -297,7 +302,7 @@ class BookRecommendationApp:
         self.sorted_books_df = pd.DataFrame(search_result)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"FilterBooks completed in {elapsed_time:.2f} seconds")
+        print(f"FindBooks completed in {elapsed_time:.2f} seconds")
         
         # Populate the book grid, and disable cover art if the checkbox is checked
         disable_cover_art_status = self.disable_cover_art_var.get()
