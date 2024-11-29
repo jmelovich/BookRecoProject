@@ -74,13 +74,26 @@ def loadImageFromURL(url, root):
         return None
     if not url.startswith("http"):
         return None
+    
     response = requests.get(url)
     image = Image.open(BytesIO(response.content))
+    
+    # Calculate the new height to maintain the aspect ratio
+    width_percent = (130 / float(image.size[0]))
+    new_height = int((float(image.size[1]) * float(width_percent)))
+    
+    # Resize the image
+    image = image.resize((130, new_height))
+    
     return ImageTk.PhotoImage(image, master=root)
+
 
 
 # Function to desplay information as users hover their mouse over book images
 def on_hover(event, title, author, rating, page_num, rating_count):
+    if hasattr(event.widget, 'tooltip') and event.widget.tooltip:
+        event.widget.tooltip.destroy()
+        
     event.widget.config(relief="raised", bd=0)
     tooltip = tk.Toplevel(event.widget)
     tooltip.wm_overrideredirect(True)
@@ -90,6 +103,7 @@ def on_hover(event, title, author, rating, page_num, rating_count):
                      background="yellow", relief="solid", borderwidth=1)
     label.pack()
     event.widget.tooltip = tooltip
+
 
 
 # Function to handle when users try to escape from the program

@@ -5,7 +5,6 @@ import tkinter as tk
 from ttkwidgets.autocomplete import AutocompleteEntry
 import kagglehub
 import time
-import SortingAlgorithms as sr
 from tkinter import BooleanVar, Checkbutton
 
 from src.ui_utils import (

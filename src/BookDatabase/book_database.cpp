@@ -84,7 +84,8 @@ public:
 
     bool calculateEmbedding(py::object python_function_) {
         // First concatenate the title and description
-        std::string text = title + " :\n" + description;
+       // std::string text = title + " :\n" + description;
+        std::string text = title;
 
         // Call the python function to get the text embedding
         py::object embedding = python_function_(text);
