@@ -65,7 +65,7 @@ def create_option_menu(parent, options, default, row, column):
     var.set(default)
     option_menu = tk.OptionMenu(parent, var, *options)
     option_menu.grid(row=row, column=column, padx=10, pady=5)
-    return var
+    return option_menu, var
 
 
 # Function that takes in an image url and returns a colored image that can be displayed on the UI.

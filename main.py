@@ -128,7 +128,7 @@ class BookRecommendationApp:
         create_button(self.input_frame, "+", self.add_bookformat, "Poppins", 3, 1, 6, 2)
 
         # Search terms
-        create_label(self.input_frame, "Search Terms:", "Poppins", '#8c92ac', 8, 0)
+        create_label(self.input_frame, "Vector Search Query:", "Poppins", '#8c92ac', 8, 0)
         self.search_terms_entry = create_entry(self.input_frame, 20, 8, 1)
 
         # Find books button
@@ -149,21 +149,26 @@ class BookRecommendationApp:
         # Sorting options
         algorithms = ["Merge Sort", "Shell Sort", "Quick Sort"]
         create_label(self.input_frame, "Sorting Method:", "Poppins", '#3C5291', 10, 0)
-        self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 10, 1)
+        self.sort_algorithm_widget, self.sort_algorithm = create_option_menu(self.input_frame, algorithms, algorithms[0], 10, 1)
 
-        sorting_var = ["Rating", "Review Count", "Page Count", "Alphabetical", "Search Relevance"]
+        sorting_var = ["Rating", "Review Count", "Page Count", "Alphabetical", "Vector Similarity"]
         create_label(self.input_frame, "Sort By:", "Poppins", '#3C5291', 11, 0)
-        self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 11, 1)
+        self.sort_by_widget, self.sort_by = create_option_menu(self.input_frame, sorting_var, sorting_var[0], 11, 1)
+        self.sort_by.trace_add("write", self.on_sort_by_change) # used to disable the sort algorithm dropdown when vector similarity is selected
+
 
         sorting_order = ["Descending", "Ascending"]
         create_label(self.input_frame, "Sorting Order:", "Poppins", '#3C5291', 12, 0)
-        self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 12, 1)
-
-        # Page Count
-        # TODO: Add page count option for people to select
-
-        # Total Ratings
-        # TODO: ADD total ratings option for people to select
+        self.order_by_widget, self.order_by = create_option_menu(self.input_frame, sorting_order, sorting_order[0], 12, 1)
+        
+    # when vector similarity is selected, disable the sort algorithm dropdown
+    # this is because the vector similarity is not sorted by any of the algorithms
+    def on_sort_by_change(self, *args):
+        """Enable or disable the sort_algorithm based on the sort_by selection."""
+        if self.sort_by.get() == "Vector Similarity":
+            self.sort_algorithm_widget.configure(state="disabled")
+        else:
+            self.sort_algorithm_widget.configure(state="normal")
 
     def add_genre(self):
         genre = self.genre_entry.get().strip()
@@ -285,7 +290,7 @@ class BookRecommendationApp:
             parameters["sortBy"] = 'num_pages'
         elif self.sort_by.get() == 'Alphabetical':
             parameters["sortBy"] = 'title'
-        elif self.sort_by.get() == 'Search Relevance':
+        elif self.sort_by.get() == 'Vector Similarity':
             parameters["sortBy"] = 'vector_search'
         
         # get the search terms
