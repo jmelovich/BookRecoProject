@@ -753,56 +753,107 @@ public:
     std::vector<BookEntry*> filterBooks(const std::map<std::string, std::string>& parameters, const bool exclusive = true) {
         std::unordered_set<BookEntry*> unique_books;
         std::vector<std::string> genres;
-
-        bool isFiltered = false;
+        std::vector<std::string> authors;
+        std::vector<std::string> titles;
 
         for (const auto& [key, value] : parameters) {
             if (key == "genre") {
                 genres = splitString(value);
-                if(!genres.empty()){
-                    isFiltered = true;
-                }
+            }
+            if (key == "author") {
+                authors = splitString(value);
+            }
+            if (key == "title") {
+                titles = splitString(value);
             }
         }
 
-        if (!isFiltered) {
-            // if no filters are applied, return all books
-            // create a vector of pointers to the book entries
-            std::vector<BookEntry*> books;
-            for (auto& entry : book_data_) {
-                books.push_back(&entry);
-            }
-            return books;
-        }
+        std::vector<BookEntry*> filtered_books;
 
-        if (exclusive) {
-            bool first = true;
-            for (const auto& g : genres) {
-                if (genre_book_map.find(g) != genre_book_map.end()) {
-                    if (first) {
-                        unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
-                        first = false;
-                    } else {
-                        std::unordered_set<BookEntry*> temp_set;
-                        for (auto book : genre_book_map[g]) {
-                            if (unique_books.find(book) != unique_books.end()) {
-                                temp_set.insert(book);
+        if(!genres.empty()){
+            if (exclusive) {
+                bool first = true;
+                for (const auto& g : genres) {
+                    if (genre_book_map.find(g) != genre_book_map.end()) {
+                        if (first) {
+                            unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
+                            first = false;
+                        } else {
+                            std::unordered_set<BookEntry*> temp_set;
+                            for (auto book : genre_book_map[g]) {
+                                if (unique_books.find(book) != unique_books.end()) {
+                                    temp_set.insert(book);
+                                }
                             }
+                            unique_books = std::move(temp_set);
                         }
-                        unique_books = std::move(temp_set);
+                    }
+                }
+            } else {
+                for (const auto& g : genres) {
+                    if (genre_book_map.find(g) != genre_book_map.end()) {
+                        unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
                     }
                 }
             }
-        } else {
-            for (const auto& g : genres) {
-                if (genre_book_map.find(g) != genre_book_map.end()) {
-                    unique_books.insert(genre_book_map[g].begin(), genre_book_map[g].end());
-                }
+
+            // Convert the unordered_set back to vector
+            filtered_books = std::vector<BookEntry*>(unique_books.begin(), unique_books.end());
+            std::cout << "Number of books after genre filter: " << filtered_books.size() << std::endl;
+        }else{
+            // if no genres are provided, we will add all books to the filtered_books vector
+            for (auto& entry : book_data_) {
+                filtered_books.push_back(&entry);
             }
         }
 
-        // Convert the unordered_set back to vector
-        return std::vector<BookEntry*>(unique_books.begin(), unique_books.end());
+        // now we will filter the books based on the other parameters
+        // authors and titles are both treated as "OR" filters within themself
+        // meaning that if a book matches any of the listed authors, the authors filter is passed- same for titles
+        // the filters are then combined as "AND" filters, meaning that a book must pass all filters
+
+        // first we will process author filter
+        if (!authors.empty()) {
+            std::vector<BookEntry*> temp_books;
+            for (BookEntry* entry : filtered_books) {
+                if (entry == nullptr) {
+                    continue; // skip null entries
+                }
+                
+                const auto& entryAuthors = entry->getAuthors();
+                for (const std::string& a : authors) {
+                    if (std::find(entryAuthors.begin(), entryAuthors.end(), a) != entryAuthors.end()) {
+                        temp_books.push_back(entry);
+                        break;
+                    }
+                }
+            }
+            filtered_books.swap(temp_books);
+            std::cout << "Number of books after author filter: " << filtered_books.size() << std::endl;
+        }
+
+        // next we will process title filter
+        if (!titles.empty()) {
+            std::vector<BookEntry*> temp_books;
+            for (BookEntry* entry : filtered_books) {
+                if (entry == nullptr) {
+                    continue; // skip null entries
+                }
+                
+                const std::string& bookTitle = entry->getTitle();
+                for (const std::string& t : titles) {
+                    if (bookTitle.find(t) != std::string::npos) {
+                        temp_books.push_back(entry);
+                        break;
+                    }
+                }
+            }
+            filtered_books.swap(temp_books);
+            std::cout << "Number of books after title filter: " << filtered_books.size() << std::endl;
+        }
+
+        return filtered_books; // return the filtered books
+
     }
 
 

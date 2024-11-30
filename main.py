@@ -110,22 +110,22 @@ class BookRecommendationApp:
         create_button(self.input_frame, "+", self.add_title, "Poppins", 3, 1, 4, 2)
 
         # Book Format input with autocomplete
-        create_label(self.input_frame, "Book Format:", "Poppins", '#8c92ac', 6, 0)
-        self.bookformat_entry = CustomAutocompleteEntry(
-            self.input_frame,
-            completevalues=bookformats_autocomplete_list,
-            add_callback=self.add_bookformat,  # Pass the callback for Enter key
-            width=20,
-            font=('Poppins', 10),
-            bg='white',
-            fg='black'
-        )
-        self.bookformat_entry.grid(row=6, column=1, padx=10, pady=5)
+        # create_label(self.input_frame, "Book Format:", "Poppins", '#8c92ac', 6, 0)
+        # self.bookformat_entry = CustomAutocompleteEntry(
+        #     self.input_frame,
+        #     completevalues=bookformats_autocomplete_list,
+        #     add_callback=self.add_bookformat,  # Pass the callback for Enter key
+        #     width=20,
+        #     font=('Poppins', 10),
+        #     bg='white',
+        #     fg='black'
+        # )
+        # self.bookformat_entry.grid(row=6, column=1, padx=10, pady=5)
 
-        self.bookformat_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
-        self.bookformat_list_frame.grid(row=7, column=0, columnspan=2, sticky='w', padx=10, pady=5)
+        # self.bookformat_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
+        # self.bookformat_list_frame.grid(row=7, column=0, columnspan=2, sticky='w', padx=10, pady=5)
 
-        create_button(self.input_frame, "+", self.add_bookformat, "Poppins", 3, 1, 6, 2)
+        # create_button(self.input_frame, "+", self.add_bookformat, "Poppins", 3, 1, 6, 2)
 
         # Search terms
         create_label(self.input_frame, "Vector Search Query:", "Poppins", '#8c92ac', 8, 0)
@@ -264,11 +264,11 @@ class BookRecommendationApp:
         # get the filters
         if self.selected_genres:
             parameters["genre"] = ",".join(self.selected_genres)
-        # get the author(s), title, and bookformat
-        # author is a list, so needs to be revised first
-        #parameters['titleFilter'] = self.entry_title.get()
-        #parameters['bookFormat'] = self.entry_bookformat.get()
-        
+        if self.selected_authors:
+            parameters["author"] = ",".join(self.selected_authors)
+        if self.selected_titles:
+            parameters["title"] = ",".join(self.selected_titles)
+            
         # get the sorting algorithm
         if self.sort_algorithm.get() == 'Shell Sort':
             parameters["sortMethod"] = 'shell'
