@@ -109,30 +109,15 @@ class BookRecommendationApp:
 
         create_button(self.input_frame, "+", self.add_title, "Poppins", 3, 1, 4, 2)
 
-        # Book Format input with autocomplete
-        # create_label(self.input_frame, "Book Format:", "Poppins", '#8c92ac', 6, 0)
-        # self.bookformat_entry = CustomAutocompleteEntry(
-        #     self.input_frame,
-        #     completevalues=bookformats_autocomplete_list,
-        #     add_callback=self.add_bookformat,  # Pass the callback for Enter key
-        #     width=20,
-        #     font=('Poppins', 10),
-        #     bg='white',
-        #     fg='black'
-        # )
-        # self.bookformat_entry.grid(row=6, column=1, padx=10, pady=5)
-
-        # self.bookformat_list_frame = tk.Frame(self.input_frame, bg='#3C5291')
-        # self.bookformat_list_frame.grid(row=7, column=0, columnspan=2, sticky='w', padx=10, pady=5)
-
-        # create_button(self.input_frame, "+", self.add_bookformat, "Poppins", 3, 1, 6, 2)
-
         # Search terms
         create_label(self.input_frame, "Vector Search Query:", "Poppins", '#8c92ac', 8, 0)
         self.search_terms_entry = create_entry(self.input_frame, 20, 8, 1)
 
         # Find books button
         create_button(self.input_frame, "Find Books!", self.find_books, "Poppins", 10, 3, 9, 1)
+
+        # Clear grid button
+        create_button(self.input_frame, "Clear Grid", self.clear_grid, "Poppins", 10, 2, 20, 1)
 
         # Disable Cover Art checkbox
         self.disable_cover_art_var = BooleanVar()
@@ -169,6 +154,11 @@ class BookRecommendationApp:
             self.sort_algorithm_widget.configure(state="disabled")
         else:
             self.sort_algorithm_widget.configure(state="normal")
+            
+    def clear_grid(self):
+        self.book_grid.isPopulating = False
+        for widget in self.book_grid.grid_frame.winfo_children():
+            widget.destroy()
 
     def add_genre(self):
         genre = self.genre_entry.get().strip()
@@ -303,11 +293,10 @@ class BookRecommendationApp:
         print(parameters)
         start_time = time.time()       
         search_result = self.book_db.findBooks(parameters)   
-        self.sorted_books_df = pd.DataFrame(search_result)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"FindBooks completed in {elapsed_time:.2f} seconds")
-        
+        print(f"FindBooks completed in {elapsed_time:.6f} seconds")
+        self.sorted_books_df = pd.DataFrame(search_result) # convert results to pandas dataframe        
         # Populate the book grid, and disable cover art if the checkbox is checked
         disable_cover_art_status = self.disable_cover_art_var.get()
         print(f"Disable Cover Art? {'Checked' if disable_cover_art_status else 'Unchecked'}")

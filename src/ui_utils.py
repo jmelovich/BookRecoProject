@@ -122,6 +122,8 @@ class BookGridUI:
         self.img_width = 130
         self.img_height = self.img_width * (20/15)
         
+        self.isPopulating = False
+        
         self.grid_canvas = tk.Canvas(root, bg='#172038')
         self.grid_canvas.pack(side='right', fill='both', expand=True)
 
@@ -160,10 +162,14 @@ class BookGridUI:
 
     # Function to add and update elements displayed on the window's grid
     def populate_grid(self, dataframe, on_click_callback, show_images=True):
+        self.isPopulating = True
+        
         for widget in self.grid_frame.winfo_children():
             widget.destroy()
             
         for index, row in dataframe.iterrows():
+            if self.isPopulating is False:
+                return
             if show_images:
                 image = loadImageFromURL(row['img'], self.root)
             else:
@@ -210,6 +216,8 @@ class BookGridUI:
                 lambda event, idx=index: on_click_callback(event, idx))
             label.row_index = index
             self.root.update()
+        
+        self.isPopulating = False
             
             
 class CustomAutocompleteEntry(tk.Entry):
