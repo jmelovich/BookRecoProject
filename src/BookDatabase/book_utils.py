@@ -16,6 +16,8 @@ def get_text_embedding(input_text):
         "model": "text-embedding-3-small"
     }
     
+    backoff_time = 5  # initial backoff time in seconds
+    
     while True:
         response = requests.post(url, headers=headers, data=json.dumps(data))
         
@@ -23,5 +25,6 @@ def get_text_embedding(input_text):
             embedding = response.json().get('data')[0].get('embedding')
             return embedding
         else:
-            print(f"Request failed with status code {response.status_code}. Retrying in 5 seconds...")
-            time.sleep(5)
+            print(f"Request failed with status code {response.status_code}. Retrying in {backoff_time} seconds...")
+            time.sleep(backoff_time)
+            backoff_time = min(backoff_time * 2, 320)  # exponential backoff with a cap at 320 seconds
