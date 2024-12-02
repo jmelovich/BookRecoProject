@@ -1,11 +1,8 @@
 // this is the C++ implementation of the BookDatabase class using pybind11
 
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
 #include <pybind11/stl.h>
 #include <string>
-#include <Eigen/Core>
-#include <Eigen/Dense>
 #include <fstream>
 #include <sstream>
 #include <map>
