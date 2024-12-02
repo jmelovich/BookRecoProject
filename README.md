@@ -1,5 +1,6 @@
 # The Book Recommendation System
-_This repo is for Project 3, COP3530_
+_This repo is for Project 3, COP3530._
+_Additionally, this project repo was created before the Project 3b Group Submission assignment was made visible on Canvas, and therefore created before we had access to the template repository._
 
 This tool is designed to help a user find a book (or books) they are most likely to enjoy reading.
 The UI and all frontend interactions are programmed in Python, and all the backend is powered by a custom C++ class exposed to Python via Pybind11.
