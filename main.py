@@ -35,7 +35,7 @@ class BookRecommendationApp:
         
         self.setup_ui()
         
-        csv_path = os.path.abspath("DatasetManagement/GoodReads_100k_books.csv")
+        csv_path = os.path.abspath("data/GoodReads_100k_books.csv")
         self.book_db = load_data_cpp(csv_path)
 
     def setup_ui(self):

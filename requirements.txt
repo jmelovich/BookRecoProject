@@ -1,0 +1,8 @@
+book_database_cpp==0.0.1
+kagglehub==0.3.4
+pandas==2.2.3
+Pillow==11.0.0
+pybind11==2.13.6
+Requests==2.32.3
+setuptools==75.1.0
+ttkwidgets==0.13.0
