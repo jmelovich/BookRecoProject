@@ -1,7 +1,4 @@
 // this is the C++ implementation of the BookDatabase class using pybind11
-// Here an abstract base class BookDatabase is defined
-// currently there are just two virtual methods for testing, but it will need to be extended obviously
-
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -20,10 +17,6 @@
 
 namespace py = pybind11;
 
-// experimenting with Eigen for now
-using DataFrame = Eigen::MatrixXd;
-
-
 class BookEntry {
 private:
     std::string title;
@@ -39,7 +32,7 @@ private:
     float rating;
     float price;
 
-    std::vector<float> embedding; // the semantic embedding of the book description + title
+    std::vector<float> embedding; // the semantic embedding of the book title
 
 public:
     BookEntry(const std::string& title, const std::vector<std::string>& author, const std::vector<std::string>& genre, const std::string& description,
@@ -83,8 +76,6 @@ public:
     void setEmbedding(const std::vector<float>& embedding) { this->embedding = embedding; }
 
     bool calculateEmbedding(py::object python_function_) {
-        // First concatenate the title and description
-       // std::string text = title + " :\n" + description;
         std::string text = title;
 
         // Call the python function to get the text embedding
@@ -507,7 +498,7 @@ std::vector<std::vector<float>> readEmbeddingsFromFile(const std::string& file_p
 class BookDatabase {
 public:
     BookDatabase(const std::string& file_path) : file_path_(file_path) {
-        py::module_ utils = py::module_::import("src.BookDatabase.book_utils");  // book_utils.py should contain your function
+        py::module_ utils = py::module_::import("src.BookDatabase.book_utils"); // load the python module
         python_function_ = utils.attr("get_text_embedding");
     }
     virtual ~BookDatabase() = default;
@@ -805,8 +796,6 @@ public:
 
         // now we will filter the books based on the other parameters
         // authors and titles are both treated as "OR" filters within themself
-        // meaning that if a book matches any of the listed authors, the authors filter is passed- same for titles
-        // the filters are then combined as "AND" filters, meaning that a book must pass all filters
 
         // first we will process author filter
         if (!authors.empty()) {
